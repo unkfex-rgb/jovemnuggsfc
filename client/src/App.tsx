@@ -11,6 +11,7 @@ import Stats from './components/Stats';
 import Elenco from './components/Elenco';
 import TopPlayers from './components/TopPlayers';
 import MatchHistory from './components/MatchHistory';
+import Contact from './components/Contact';
 
 function HomePage() {
   return (
@@ -22,6 +23,7 @@ function HomePage() {
       <Elenco />
       <TopPlayers />
       <MatchHistory />
+      <Contact />
     </div>
   );
 }
