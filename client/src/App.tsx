@@ -9,6 +9,7 @@ import Hero from './components/Hero';
 
 import Stats from './components/Stats';
 import Elenco from './components/Elenco';
+import BestPlayers from './components/BestPlayers';
 import TopPlayers from './components/TopPlayers';
 import MatchHistory from './components/MatchHistory';
 import Contact from './components/Contact';
@@ -21,6 +22,7 @@ function HomePage() {
 
       <Stats />
       <Elenco />
+      <BestPlayers />
       <TopPlayers />
       <MatchHistory />
       <Contact />

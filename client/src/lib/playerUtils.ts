@@ -21,6 +21,45 @@ export function getPositionColor(position: string): string {
   return colors[position?.toLowerCase()] || 'from-purple-400 to-purple-500';
 }
 
+export function getPositionLabel(position: string): string {
+  const labels: Record<string, string> = {
+    goalkeeper: 'Goleiro',
+    gk: 'Goleiro',
+    defender: 'Defesa',
+    def: 'Defesa',
+    midfielder: 'Meio',
+    mid: 'Meio',
+    forward: 'Atacante',
+    att: 'Atacante',
+  };
+  return labels[position?.toLowerCase()] || position;
+}
+
+export function getPositionCategory(position: string): 'goalkeeper' | 'defender' | 'midfielder' | 'forward' {
+  const pos = position?.toLowerCase() || '';
+  if (pos === 'goalkeeper' || pos === 'gk') return 'goalkeeper';
+  if (pos === 'defender' || pos === 'def') return 'defender';
+  if (pos === 'midfielder' || pos === 'mid') return 'midfielder';
+  if (pos === 'forward' || pos === 'att') return 'forward';
+  return 'midfielder';
+}
+
+export function calculatePlayerScore(player: any): number {
+  // Calcula um score baseado em múltiplos atributos
+  const goalsWeight = 10;
+  const assistsWeight = 8;
+  const ratingWeight = 5;
+  const matchesWeight = 1;
+
+  const score = 
+    (player.goals || 0) * goalsWeight +
+    (player.assists || 0) * assistsWeight +
+    (parseFloat(player.averageRating) || 0) * ratingWeight +
+    (player.matches || 0) * matchesWeight;
+
+  return Math.round(score);
+}
+
 export function formatDate(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleDateString('pt-BR', {
     day: '2-digit',
