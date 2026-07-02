@@ -1,8 +1,15 @@
+import { initTRPC } from "@trpc/server";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { COOKIE_NAME } from "../shared/const.js";
-import { publicProcedure, router } from "../server/_core/trpc.js";
-import { systemRouter } from "../server/_core/systemRouter.js";
 import express from "express";
+import superjson from "superjson";
+
+// Re-implementing necessary parts to avoid import issues in Vercel ESM environment
+const t = initTRPC.create({
+  transformer: superjson,
+});
+
+const router = t.router;
+const publicProcedure = t.procedure;
 
 const CLUB_ID = "8044401";
 const API_BASE = "https://api.ourproclub.app/api";
@@ -19,7 +26,6 @@ async function fetchMatchHistory() {
 }
 
 const appRouter = router({
-  system: systemRouter,
   club: router({
     matchHistory: publicProcedure.query(async () => {
       return await fetchMatchHistory();
