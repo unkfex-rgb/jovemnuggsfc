@@ -4,6 +4,18 @@ import { trpc } from '@/lib/trpc';
 export default memo(function MatchHistory() {
   const { data: matches = [] } = trpc.club.matchHistory.useQuery();
 
+  const getScoreColor = (ourGoals: number, theirGoals: number) => {
+    if (ourGoals > theirGoals) return 'text-green-400';
+    if (ourGoals < theirGoals) return 'text-red-400';
+    return 'text-yellow-400';
+  };
+
+  const getResultColor = (ourGoals: number, theirGoals: number) => {
+    if (ourGoals > theirGoals) return 'text-green-400';
+    if (ourGoals < theirGoals) return 'text-red-400';
+    return 'text-yellow-400';
+  };
+
   return (
     <section id="historico" className="relative py-20 px-5 overflow-hidden">
       {/* Watermark do escudo */}
@@ -26,29 +38,36 @@ export default memo(function MatchHistory() {
         </h2>
 
         <div className="space-y-4">
-          {Array.isArray(matches) && matches.slice(0, 15).map((match: any, idx: number) => (
-            <div key={idx} className="group relative overflow-hidden rounded-lg">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-0 group-hover:opacity-10 blur-xl transition-all duration-300" />
-              <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="text-white font-mono font-bold">Jovem Nuggs FC</div>
-                    <div className="text-xs text-gray-500 font-mono">{new Date(match.match_date || match.date).toLocaleDateString('pt-BR')}</div>
-                  </div>
-                  <div className="text-center px-4">
-                    <div className="text-2xl font-900 text-cyan-400 font-mono">{match.match_data?.clubs?.["8044401"]?.goals || 0} - {Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').reduce((sum: number, c: any) => sum + parseInt(c.goals || 0), 0)}</div>
-                    <div className="text-xs text-gray-400 font-mono mt-1">
-                      {parseInt(match.match_data?.clubs?.["8044401"]?.goals || 0) > Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').reduce((sum: number, c: any) => sum + parseInt(c.goals || 0), 0) ? '✓ VITÓRIA' : parseInt(match.match_data?.clubs?.["8044401"]?.goals || 0) < Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').reduce((sum: number, c: any) => sum + parseInt(c.goals || 0), 0) ? '✗ DERROTA' : '= EMPATE'}
+          {Array.isArray(matches) && matches.slice(0, 15).map((match: any, idx: number) => {
+            const ourGoals = parseInt(match.match_data?.clubs?.["8044401"]?.goals || 0);
+            const theirGoals = Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').reduce((sum: number, c: any) => sum + parseInt(c.goals || 0), 0);
+            
+            return (
+              <div key={idx} className="group relative overflow-hidden rounded-lg">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 opacity-0 group-hover:opacity-10 blur-xl transition-all duration-300" />
+                <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="text-white font-mono font-bold">Jovem Nuggs FC</div>
+                      <div className="text-xs text-gray-500 font-mono">{new Date(match.match_date || match.date).toLocaleDateString('pt-BR')}</div>
                     </div>
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="text-white font-mono font-bold">{Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').map((c: any) => c.clubName).join(' vs ')}</div>
-                    <div className="text-xs text-gray-500 font-mono">{match.competition || 'Amistoso'}</div>
+                    <div className="text-center px-4">
+                      <div className={`text-2xl font-900 font-mono ${getScoreColor(ourGoals, theirGoals)}`}>
+                        {ourGoals} - {theirGoals}
+                      </div>
+                      <div className={`text-xs font-mono mt-1 ${getResultColor(ourGoals, theirGoals)}`}>
+                        {ourGoals > theirGoals ? '✓ VITÓRIA' : ourGoals < theirGoals ? '✗ DERROTA' : '= EMPATE'}
+                      </div>
+                    </div>
+                    <div className="flex-1 text-right">
+                      <div className="text-white font-mono font-bold">{Object.values(match.match_data?.clubs || {}).filter((c: any) => c.clubName !== 'Jovem Nuggs FC').map((c: any) => c.clubName).join(' vs ')}</div>
+                      <div className="text-xs text-gray-500 font-mono">{match.competition || 'Amistoso'}</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {matches.length === 0 && (
