@@ -1,0 +1,22 @@
+# Project TODO
+
+- [x] Página Hero com escudo animado, nome do clube com efeito de brilho, estatísticas rápidas e botão de CTA.
+- [x] Seção 'Sobre' com cards informativos (fundação, estilo de jogo, plataforma, divisão).
+- [x] Formulário de inscrição de jogadores (nick, nome real, número, posição, cargo) com persistência em DB.
+- [x] Elenco titular em grid de cards (número, avatar, nick, nome, posição, cargo) com filtros por posição.
+- [x] Banco de reservas em seção separada, com cards no mesmo estilo visual do elenco titular.
+- [x] Escalação tática interativa (campo 4-3-3, slots clicáveis, modal para adicionar/editar, drag-and-drop).
+- [x] Seção de estatísticas do clube (histórico de partidas, ranking de top jogadores).
+- [x] Navegação fixa no topo com links para seções, scroll spy, glassmorphism e responsividade mobile.
+- [x] Sistema de toast de notificações.
+- [x] Modal para editar ou remover jogadores dos slots da escalação tática.
+- [x] Aplicar design dark cyberpunk (fundo, fontes, paleta de cores, scanlines, blobs de luz).
+- [x] Animações de reveal no scroll.
+- [x] Persistência de todos os dados de jogadores em banco de dados.
+- [x] Geração de avatar com iniciais do nome para cards de jogadores.
+- [x] Garantir compatibilidade com Vercel.
+- [x] Projeto compilando sem erros de TypeScript e lint.
+- [x] Otimizações de performance (lazy loading, memoização, code splitting, React.memo, useMemo, useCallback).
+- [x] Eliminar código duplicado.
+- [x] Melhorar consultas ao Firebase (migrar para tRPC/Drizzle).
+- [x] Corrigir bugs e ajustes finais.
