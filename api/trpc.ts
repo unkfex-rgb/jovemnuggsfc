@@ -3,7 +3,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import express from "express";
 import superjson from "superjson";
 
-// Re-implementing necessary parts to avoid import issues in Vercel ESM environment
+// 100% Self-contained API to avoid Vercel ESM resolution issues
 const t = initTRPC.create({
   transformer: superjson,
 });
@@ -26,6 +26,9 @@ async function fetchMatchHistory() {
 }
 
 const appRouter = router({
+  system: router({
+    health: publicProcedure.query(() => ({ status: "ok" })),
+  }),
   club: router({
     matchHistory: publicProcedure.query(async () => {
       return await fetchMatchHistory();
