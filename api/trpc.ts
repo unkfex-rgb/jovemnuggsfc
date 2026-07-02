@@ -1,7 +1,7 @@
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { COOKIE_NAME } from "../shared/const";
-import { publicProcedure, router } from "../server/_core/trpc";
-import { systemRouter } from "../server/_core/systemRouter";
+import { COOKIE_NAME } from "../shared/const.js";
+import { publicProcedure, router } from "../server/_core/trpc.js";
+import { systemRouter } from "../server/_core/systemRouter.js";
 import express from "express";
 
 const CLUB_ID = "8044401";
