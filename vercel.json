@@ -1,11 +1,22 @@
 {
   "version": 2,
-  "buildCommand": "pnpm install && pnpm build",
-  "outputDirectory": "dist/public",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
+    },
+    {
+      "src": "server/_core/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/trpc/(.*)",
-      "destination": "/api/trpc"
+      "destination": "server/_core/index.ts"
     },
     {
       "source": "/(.*)",
