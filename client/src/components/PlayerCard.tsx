@@ -57,7 +57,7 @@ export const PlayerCardHover = memo(({ player, onClose }: any) => {
             <div className="text-4 font-900 text-red-400">{player.goals}</div>
           </div>
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">
-            <div className="text-2.5 text-gray-400">Assistencias</div>
+            <div className="text-2.5 text-gray-400">Assistências</div>
             <div className="text-4 font-900 text-blue-400">{player.assists}</div>
           </div>
           <div className="bg-white/5 border border-white/10 rounded-lg p-3 text-center">

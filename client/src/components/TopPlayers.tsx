@@ -59,7 +59,7 @@ export default memo(function TopPlayers() {
         <div className="space-y-12">
           {[
             { title: 'Top Gols', players: topData.topByGoals, category: 'goals', color: 'from-red-500 to-pink-400' },
-            { title: 'Top Assistencias', players: topData.topByAssists, category: 'assists', color: 'from-blue-500 to-cyan-400' },
+            { title: 'Top Assistências', players: topData.topByAssists, category: 'assists', color: 'from-blue-500 to-cyan-400' },
             { title: 'Top Rating', players: topData.topByRating, category: 'rating', color: 'from-yellow-500 to-orange-400' },
           ].map((section, idx) => (
             <div key={idx}>
