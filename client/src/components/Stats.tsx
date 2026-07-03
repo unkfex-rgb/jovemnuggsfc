@@ -1,6 +1,14 @@
 import React, { memo } from 'react';
+import { trpc } from '@/lib/trpc';
 
 export default memo(function Stats() {
+  const { data: stats } = trpc.club.stats.useQuery();
+  
+  const totalMatches = stats?.totalMatches || 0;
+  const wins = stats?.wins || 0;
+  const totalGoals = stats?.totalGoals || 0;
+  const totalAssists = Object.values(stats?.players || {}).reduce((sum: number, p: any) => sum + (p.assists || 0), 0);
+  
   return (
     <section id="stats" className="relative py-20 px-5 overflow-hidden">
       {/* Watermark do escudo */}
@@ -26,7 +34,7 @@ export default memo(function Stats() {
           <div className="group relative overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
             <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-cyan-400 mb-2">12</div>
+              <div className="text-5 font-900 text-cyan-400 mb-2">{totalMatches}</div>
               <div className="text-2.75 text-gray-400 font-mono">Partidas</div>
             </div>
           </div>
@@ -34,7 +42,7 @@ export default memo(function Stats() {
           <div className="group relative overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
             <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-green-400 mb-2">8</div>
+              <div className="text-5 font-900 text-green-400 mb-2">{wins}</div>
               <div className="text-2.75 text-gray-400 font-mono">Vitórias</div>
             </div>
           </div>
@@ -42,7 +50,7 @@ export default memo(function Stats() {
           <div className="group relative overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
             <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-purple-400 mb-2">34</div>
+              <div className="text-5 font-900 text-purple-400 mb-2">{totalGoals}</div>
               <div className="text-2.75 text-gray-400 font-mono">Gols</div>
             </div>
           </div>
@@ -50,7 +58,7 @@ export default memo(function Stats() {
           <div className="group relative overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
             <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-yellow-400 mb-2">18</div>
+              <div className="text-5 font-900 text-yellow-400 mb-2">{totalAssists}</div>
               <div className="text-2.75 text-gray-400 font-mono">Assistências</div>
             </div>
           </div>
