@@ -34,12 +34,12 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
       topDefender
     };
 
-    // Fixed starters provided by user
+    // Fixed starters provided by user - Updated positions
     const startersNames = {
-      st: ['araujozx77_'],
-      ams: ['mxndini-', 'PECINHAA22', 'corintia4i20'],
-      cdms: ['Vinim71655', 'pedrofeRLK'],
-      defs: ['tavin__07', 'scobyzinn', 'CELTA4656', 'Jessysz0'],
+      st: ['PECINHAA22'],
+      ams: ['mxndini-', 'tavin__07', 'pedrofeRLK'],
+      cdms: ['Vinim71655', 'corintia4i20'],
+      defs: ['araujozx77_', 'scobyzinn', 'CELTA4656', 'Jessysz0'],
       gk: ['Dghs100']
     };
 
