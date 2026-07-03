@@ -34,7 +34,7 @@ export default function Hero() {
           <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
           <div className="relative w-32 h-32 md:w-48 md:h-48 mx-auto">
             <img
-              src="/manus-storage/logo-mark_a44f0256.png"
+              src="/assets/logo-official.png"
               alt="Logo"
               className="w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
             />

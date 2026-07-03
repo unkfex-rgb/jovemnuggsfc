@@ -10,8 +10,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-6 group cursor-pointer">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-black group-hover:rotate-12 transition-transform duration-500 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                JN
+              <div className="w-16 h-16 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+                <img src="/assets/logo-official.png" alt="JN" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="text-white font-black text-2xl leading-none tracking-tighter uppercase">JOVEM NUGGS</span>

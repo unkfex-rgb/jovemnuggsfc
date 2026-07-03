@@ -35,8 +35,8 @@ export default function Navbar() {
     >
       <div className="container flex items-center justify-between">
         <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center font-black text-black group-hover:rotate-12 transition-transform duration-500 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-            JN
+          <div className="w-12 h-12 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+            <img src="/assets/logo-official.png" alt="JN" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
           </div>
           <div className="flex flex-col">
             <span className="text-white font-black text-lg leading-none tracking-tighter">JOVEM NUGGS</span>
