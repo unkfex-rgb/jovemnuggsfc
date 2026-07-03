@@ -1,26 +1,27 @@
 import React, { memo, useState, useMemo } from 'react';
-import { trpc } from '../lib/trpc';
 import { PlayerCard } from './PlayerCard';
 import { getPositionCategory, getPositionLabel } from '../lib/playerUtils';
 import { motion } from 'framer-motion';
+import { SectionLabel } from './SectionLabel';
+import { Reveal } from './Reveal';
+import type { Player } from '@/types/api';
 
-export default memo(function Elenco() {
-  const { data: stats } = trpc.club.stats.useQuery();
+interface ElencoProps {
+  players: Player[];
+  loading?: boolean;
+}
+
+export default memo(function Elenco({ players, loading }: ElencoProps) {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
 
-  const players = useMemo(() => {
-    if (!stats?.players) return [];
-    return Object.values(stats.players).sort((a: any, b: any) => b.matches - a.matches);
-  }, [stats]);
-
   const positions = useMemo(() => {
-    const uniquePositions = new Set(players.map((p: any) => getPositionCategory(p.position)));
+    const uniquePositions = new Set(players.map((p) => getPositionCategory(p.position)));
     return Array.from(uniquePositions);
   }, [players]);
 
   const filteredPlayers = useMemo(() => {
     if (!selectedPosition) return players;
-    return players.filter((p: any) => getPositionCategory(p.position) === selectedPosition);
+    return players.filter((p) => getPositionCategory(p.position) === selectedPosition);
   }, [players, selectedPosition]);
 
   const containerVariants = {
@@ -29,123 +30,76 @@ export default memo(function Elenco() {
       opacity: 1,
       transition: {
         staggerChildren: 0.05,
-        delayChildren: 0.1,
       },
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: 'spring' as const, stiffness: 300, damping: 30 },
-    },
-  };
-
   return (
-    <section className="relative py-20 px-5 overflow-hidden">
-      {/* Fundo preto com grid pattern */}
-      <div className="absolute inset-0 bg-black" />
-      <div className="absolute inset-0 opacity-3" style={{
-        backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent),
-                         linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent)`,
-        backgroundSize: '50px 50px'
-      }} />
+    <section id="elenco" className="relative py-28 px-6 max-w-7xl mx-auto">
+      <Reveal>
+        <SectionLabel>Elite Squad</SectionLabel>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter">ELENCO</h2>
+            <p className="text-white/40 mt-2 font-medium">
+              {filteredPlayers.length} jogador{filteredPlayers.length !== 1 ? 'es' : ''} no elenco ativo
+            </p>
+          </div>
 
-      {/* Neon glow sutil */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
-
-      <div className="max-w-270 mx-auto relative z-10">
-        {/* Section Title */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <h2 className="text-5 md:text-8 font-900 tracking-widest mb-4 font-orbitron text-center text-white" style={{
-            textShadow: '0 0 20px rgba(0, 255, 255, 0.4)',
-            letterSpacing: '0.08em'
-          }}>
-            ELENCO COMPLETO
-          </h2>
-          <p className="text-center text-gray-400 text-3 md:text-3.5 font-mono">
-            {filteredPlayers.length} jogador{filteredPlayers.length !== 1 ? 'es' : ''} no elenco
-          </p>
-        </motion.div>
-
-        {/* Position Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          viewport={{ once: true }}
-          className="mb-12 flex flex-wrap gap-3 justify-center"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedPosition(null)}
-            className={`px-6 py-2.5 font-bold text-2.5 transition-all duration-300 border font-mono uppercase tracking-widest ${
-              selectedPosition === null
-                ? 'bg-black border-cyan-400 text-cyan-400'
-                : 'bg-black border-cyan-400/30 text-gray-400 hover:border-cyan-400/60'
-            }`}
-            style={selectedPosition === null ? {
-              boxShadow: '0 0 15px rgba(0, 255, 255, 0.5)'
-            } : {
-              boxShadow: '0 0 8px rgba(0, 255, 255, 0.2)'
-            }}
-          >
-            Todos
-          </motion.button>
-
-          {positions.map((pos) => (
-            <motion.button
-              key={pos}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedPosition(pos)}
-              className={`px-6 py-2.5 font-bold text-2.5 transition-all duration-300 border font-mono uppercase tracking-widest ${
-                selectedPosition === pos
-                  ? 'bg-black border-cyan-400 text-cyan-400'
-                  : 'bg-black border-cyan-400/30 text-gray-400 hover:border-cyan-400/60'
+          {/* Position Filter */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedPosition(null)}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                selectedPosition === null
+                  ? 'bg-white text-black border-white'
+                  : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
               }`}
-              style={selectedPosition === pos ? {
-                boxShadow: '0 0 15px rgba(0, 255, 255, 0.5)'
-              } : {
-                boxShadow: '0 0 8px rgba(0, 255, 255, 0.2)'
-              }}
             >
-              {getPositionLabel(pos)}
-            </motion.button>
-          ))}
-        </motion.div>
+              Todos
+            </button>
+            {positions.map((pos) => (
+              <button
+                key={pos}
+                onClick={() => setSelectedPosition(pos)}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                  selectedPosition === pos
+                    ? 'bg-white text-black border-white'
+                    : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
+                }`}
+              >
+                {getPositionLabel(pos)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Reveal>
 
-        {/* Players Grid */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : (
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
         >
-          {filteredPlayers.map((player: any, idx: number) => (
-            <motion.div key={idx} variants={itemVariants as any}>
-              <PlayerCard player={player} />
-            </motion.div>
+          {filteredPlayers.map((player, idx) => (
+            <PlayerCard key={player.name} player={player} />
           ))}
         </motion.div>
+      )}
 
-        {filteredPlayers.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 font-mono">Nenhum jogador encontrado.</div>
-          </div>
-        )}
-      </div>
+      {!loading && filteredPlayers.length === 0 && (
+        <div className="text-center py-20 glass-dark rounded-3xl border border-dashed border-white/10">
+          <p className="text-white/30 font-medium italic">Nenhum jogador encontrado nesta categoria.</p>
+        </div>
+      )}
     </section>
   );
 });

@@ -1,22 +1,94 @@
 import axios from "axios";
-import type { Match, Player, ClubStats, ProClubResponse } from "@/types/api";
+import type { Match, Player, ClubStats, RawMatchData, RawPlayerStats } from "@/types/api";
 
 const API_BASE_URL = "https://api.ourproclub.app/api";
 const CLUB_ID = "8044401";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
 });
 
 export const proClubAPI = {
-  async getMatchHistory() {
+  async getMatchHistory(): Promise<{ matches: Match[]; players: Player[] }> {
     try {
-      const response = await apiClient.get(`/match/history?clubId=${CLUB_ID}`);
-      return response.data;
+      const response = await apiClient.get<RawMatchData[]>(`/match/history?clubId=${CLUB_ID}`);
+      const rawData = response.data;
+
+      if (!Array.isArray(rawData)) {
+        console.error("API response is not an array:", rawData);
+        return { matches: [], players: [] };
+      }
+
+      const matches: Match[] = rawData.map((m) => {
+        const ourClub = m.match_data.clubs[CLUB_ID];
+        const opponentClub = Object.values(m.match_data.clubs).find(c => c.clubId !== CLUB_ID);
+        
+        const ourGoals = parseInt(ourClub?.goals || "0");
+        const oppGoals = parseInt(opponentClub?.goals || "0");
+        
+        let result: "W" | "L" | "D" = "D";
+        if (ourGoals > oppGoals) result = "W";
+        else if (ourGoals < oppGoals) result = "L";
+
+        return {
+          id: m.match_data.matchId,
+          timestamp: m.match_data.timestamp,
+          date: m.match_data.timeAgo,
+          opponent: opponentClub?.clubName || "Desconhecido",
+          teamGoals: ourGoals,
+          oppGoals: oppGoals,
+          result,
+          playerStats: m.player_data
+        };
+      });
+
+      // Process Players
+      const playerMap = new Map<string, Player>();
+
+      rawData.forEach((m) => {
+        if (m.player_data) {
+          Object.entries(m.player_data).forEach(([name, stats]) => {
+            const existing = playerMap.get(name);
+            const goals = parseInt(stats.goals || "0");
+            const assists = parseInt(stats.assists || "0");
+            const rating = parseFloat(stats.rating || "0");
+            const cleanSheets = parseInt(stats.cleansheetsdef || "0") + parseInt(stats.cleansheetsgk || "0");
+
+            if (existing) {
+              existing.goals += goals;
+              existing.assists += assists;
+              existing.matches += 1;
+              existing.avgRating = (existing.avgRating * (existing.matches - 1) + rating) / existing.matches;
+              existing.cleanSheets += cleanSheets;
+              existing.shots += parseInt(stats.shots || "0");
+              existing.passes += parseInt(stats.passesmade || "0");
+              existing.tackles += parseInt(stats.tacklesmade || "0");
+            } else {
+              playerMap.set(name, {
+                name,
+                position: stats.pos,
+                goals,
+                assists,
+                matches: 1,
+                avgRating: rating,
+                cleanSheets,
+                shots: parseInt(stats.shots || "0"),
+                passes: parseInt(stats.passesmade || "0"),
+                tackles: parseInt(stats.tacklesmade || "0")
+              });
+            }
+          });
+        }
+      });
+
+      return { 
+        matches, 
+        players: Array.from(playerMap.values()).sort((a, b) => b.avgRating - a.avgRating) 
+      };
     } catch (error) {
       console.error("Erro ao buscar histórico de partidas:", error);
-      throw error;
+      return { matches: [], players: [] };
     }
   },
 
@@ -30,10 +102,7 @@ export const proClubAPI = {
     const ga = matches.reduce((sum, m) => sum + m.oppGoals, 0);
     const saldo = gf - ga;
 
-    const points = matches.reduce(
-      (sum, m) => sum + (m.result === "W" ? 3 : m.result === "D" ? 1 : 0),
-      0
-    );
+    const points = wins * 3 + draws * 1;
     const aproveitamento = total > 0 ? (points / (total * 3)) * 100 : 0;
 
     const cleanSheets = matches.filter((m) => m.oppGoals === 0).length;
@@ -41,9 +110,10 @@ export const proClubAPI = {
 
     let currentStreak = { type: null as "W" | "L" | "D" | null, count: 0 };
     if (matches.length > 0) {
-      const lastResult = matches[matches.length - 1].result;
+      // API returns matches from newest to oldest usually, let's assume matches[0] is newest
+      const lastResult = matches[0].result;
       let count = 0;
-      for (let i = matches.length - 1; i >= 0; i--) {
+      for (let i = 0; i < matches.length; i++) {
         if (matches[i].result === lastResult) {
           count++;
         } else {
@@ -55,7 +125,9 @@ export const proClubAPI = {
 
     let bestStreak = 0;
     let currentWinStreak = 0;
-    for (const match of matches) {
+    // For best streak we need chronological order (oldest to newest)
+    const chronologicalMatches = [...matches].reverse();
+    for (const match of chronologicalMatches) {
       if (match.result === "W") {
         currentWinStreak++;
         bestStreak = Math.max(bestStreak, currentWinStreak);

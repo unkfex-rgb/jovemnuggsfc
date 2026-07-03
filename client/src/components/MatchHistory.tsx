@@ -1,121 +1,92 @@
 import React, { memo } from 'react';
-import { trpc } from '@/lib/trpc';
+import { motion } from 'framer-motion';
+import { SectionLabel } from './SectionLabel';
+import { Reveal } from './Reveal';
+import type { Match } from '@/types/api';
 
-export default memo(function MatchHistory() {
-  const { data: matches = [] } = trpc.club.matchHistory.useQuery();
+interface MatchHistoryProps {
+  matches: Match[];
+  loading?: boolean;
+}
 
-  const getScoreColor = (ourGoals: number, theirGoals: number) => {
-    if (ourGoals > theirGoals) return 'text-emerald-400';
-    if (ourGoals < theirGoals) return 'text-red-400';
-    return 'text-gray-300';
+export default memo(function MatchHistory({ matches, loading }: MatchHistoryProps) {
+  const getResultColor = (result: string) => {
+    if (result === 'W') return 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5';
+    if (result === 'L') return 'text-rose-400 border-rose-400/20 bg-rose-400/5';
+    return 'text-amber-400 border-amber-400/20 bg-amber-400/5';
   };
 
-  const getResultLabel = (ourGoals: number, theirGoals: number) => {
-    if (ourGoals > theirGoals) return '✓ VITÓRIA';
-    if (ourGoals < theirGoals) return '✗ DERROTA';
-    return '= EMPATE';
+  const getResultLabel = (result: string) => {
+    if (result === 'W') return 'Vitória';
+    if (result === 'L') return 'Derrota';
+    return 'Empate';
   };
-
-  const getResultColor = (ourGoals: number, theirGoals: number) => {
-    if (ourGoals > theirGoals) return 'text-emerald-400';
-    if (ourGoals < theirGoals) return 'text-red-400';
-    return 'text-gray-300';
-  };
-
-  // A API retorna match_type como "leagueMatch" / "playoffMatch",
-  // nunca um campo "competition" — por isso sempre caía no fallback "Amistoso"
-  const getMatchTypeLabel = (matchType: string | undefined) => {
-    if (matchType === 'leagueMatch') return 'Liga';
-    if (matchType === 'playoffMatch') return 'Playoff';
-    return 'Amistoso';
-  };
-
-  const OUR_CLUB_ID = '8044401';
 
   return (
-    <section id="historico" className="relative py-20 px-5 overflow-hidden">
-      {/* Fundo preto com grid pattern */}
-      <div className="absolute inset-0 bg-black" />
-      <div className="absolute inset-0 opacity-3" style={{
-        backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent),
-                         linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent)`,
-        backgroundSize: '50px 50px'
-      }} />
+    <section id="historico" className="relative py-28 px-6 max-w-7xl mx-auto">
+      <Reveal>
+        <SectionLabel>Linha do tempo</SectionLabel>
+        <h2 className="text-4xl md:text-6xl font-bold mb-16 tracking-tighter">HISTÓRICO</h2>
+      </Reveal>
 
-      {/* Neon glow sutil */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
+      <div className="relative">
+        {/* Vertical Line */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-white/20 via-white/5 to-transparent hidden md:block" />
 
-      <div className="max-w-270 mx-auto relative z-10">
-        <h2 className="text-5 md:text-8 font-900 tracking-widest mb-16 font-orbitron text-center text-white" style={{
-          textShadow: '0 0 20px rgba(0, 255, 255, 0.4)',
-          letterSpacing: '0.08em'
-        }}>
-          HISTÓRICO OFICIAL
-        </h2>
+        <div className="space-y-12">
+          {loading ? (
+            [...Array(5)].map((_, i) => (
+              <div key={i} className="h-32 glass-dark rounded-3xl animate-pulse" />
+            ))
+          ) : (
+            matches.slice(0, 10).map((match, idx) => (
+              <Reveal key={match.id} delay={idx * 50}>
+                <motion.div 
+                  whileHover={{ scale: 1.01 }}
+                  className={`relative flex flex-col md:flex-row items-center gap-8 ${
+                    idx % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
+                  }`}
+                >
+                  {/* Timeline Dot */}
+                  <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-4 border-black z-10 hidden md:block" />
 
-        <div className="space-y-3">
-          {Array.isArray(matches) && matches.slice(0, 15).map((match: any, idx: number) => {
-            const clubsEntries = Object.entries(match.match_data?.clubs || {});
-            const ourGoals = parseInt(match.match_data?.clubs?.[OUR_CLUB_ID]?.goals || 0);
-            // Filtra pelo clubId em vez do nome do time: nomes de adversário podem
-            // vir com encoding quebrado da API e nunca bateriam com 'Jovem Nuggs FC'
-            const opponentEntries = clubsEntries.filter(([clubId]) => clubId !== OUR_CLUB_ID);
-            const theirGoals = opponentEntries.reduce(
-              (sum: number, [, c]: any) => sum + parseInt(c.goals || 0),
-              0
-            );
-            const opponentName = opponentEntries.map(([, c]: any) => c.clubName).join(' vs ') || 'Adversário';
-            // match_date vem em segundos (epoch); new Date() espera milissegundos
-            const matchTimestamp = (match.match_date || match.date || 0) * 1000;
-            
-            return (
-              <div key={idx} className="group relative overflow-hidden bg-black border border-cyan-400/30 p-4 cursor-pointer transition-all duration-300 hover:border-cyan-400/70" style={{
-                boxShadow: '0 0 8px rgba(0, 255, 255, 0.1)'
-              }} onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.7)';
-                e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.4)';
-              }} onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.3)';
-                e.currentTarget.style.boxShadow = '0 0 8px rgba(0, 255, 255, 0.1)';
-              }}>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center justify-between">
-                  {/* Time da casa */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white font-mono font-bold text-sm truncate">Jovem Nuggs FC</div>
-                    <div className="text-xs text-gray-500 font-mono">{new Date(matchTimestamp).toLocaleDateString('pt-BR')}</div>
-                  </div>
-
-                  {/* Placar */}
-                  <div className="text-center px-6">
-                    <div className={`text-2xl font-900 font-mono ${getScoreColor(ourGoals, theirGoals)}`} style={{
-                      textShadow: '0 0 10px rgba(0, 255, 255, 0.3)'
-                    }}>
-                      {ourGoals} - {theirGoals}
+                  {/* Content Card */}
+                  <div className={`w-full md:w-[calc(50%-2rem)] glass-dark p-8 rounded-3xl border border-white/10 hover:border-white/30 transition-all group`}>
+                    <div className="flex justify-between items-center mb-6">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                        {match.date}
+                      </span>
+                      <div className={`px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${getResultColor(match.result)}`}>
+                        {getResultLabel(match.result)}
+                      </div>
                     </div>
-                    <div className={`text-xs font-mono mt-1 ${getResultColor(ourGoals, theirGoals)}`} style={{
-                      textShadow: '0 0 5px rgba(0, 255, 255, 0.2)'
-                    }}>
-                      {getResultLabel(ourGoals, theirGoals)}
+
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <h4 className="text-xs font-bold text-white/40 uppercase mb-1">Jovem Nuggs FC</h4>
+                        <p className="text-xl font-black text-white truncate">JN FC</p>
+                      </div>
+
+                      <div className="flex flex-col items-center px-4">
+                        <div className="text-3xl font-black text-white tracking-tighter">
+                          {match.teamGoals} <span className="text-white/20 mx-1">-</span> {match.oppGoals}
+                        </div>
+                      </div>
+
+                      <div className={`flex-1 ${idx % 2 === 0 ? 'text-right' : 'text-right md:text-left'}`}>
+                        <h4 className="text-xs font-bold text-white/40 uppercase mb-1">Adversário</h4>
+                        <p className="text-xl font-black text-white truncate">{match.opponent}</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Time visitante */}
-                  <div className="flex-1 min-w-0 text-right">
-                    <div className="text-white font-mono font-bold text-sm truncate">{opponentName}</div>
-                    <div className="text-xs text-gray-500 font-mono">{getMatchTypeLabel(match.match_type)}</div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                  {/* Empty space for the other side */}
+                  <div className="hidden md:block md:w-[calc(50%-2rem)]" />
+                </motion.div>
+              </Reveal>
+            ))
+          )}
         </div>
-
-        {matches.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 font-mono">Nenhuma partida registrada ainda.</div>
-          </div>
-        )}
       </div>
     </section>
   );

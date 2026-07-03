@@ -2,6 +2,9 @@ import { useProClub } from "@/hooks/useProClub";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
+import Elenco from "@/components/Elenco";
+import MatchHistory from "@/components/MatchHistory";
+import CampoTatico from "@/components/CampoTatico";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Reveal } from "@/components/Reveal";
 import { StatCard } from "@/components/StatCard";
@@ -42,7 +45,7 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
       <Navbar />
       <Hero />
 
@@ -50,14 +53,14 @@ export default function Home() {
       <section id="estatisticas" className="relative py-28 px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Números do clube</SectionLabel>
-          <h2 className="text-4xl md:text-6xl font-bold mb-10">ESTATÍSTICAS</h2>
+          <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tighter">ESTATÍSTICAS</h2>
         </Reveal>
 
         {loading && <LoadingState />}
         {error && <ErrorState message={error} />}
 
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             <StatCard
               icon={Activity}
               label="Jogos"
@@ -126,14 +129,14 @@ export default function Home() {
       <section id="dashboard" className="relative py-28 px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Indicadores automáticos</SectionLabel>
-          <h2 className="text-4xl md:text-6xl font-bold mb-10">DASHBOARD</h2>
+          <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tighter">DASHBOARD</h2>
         </Reveal>
 
         {loading && <LoadingState />}
         {error && <ErrorState message={error} />}
 
         {stats && players.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <DashboardCard
               title="Maior Goleador"
               name={topScorer?.name || "-"}
@@ -193,6 +196,15 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Elenco */}
+      <Elenco players={players} loading={loading} />
+
+      {/* Formação */}
+      <CampoTatico players={players} loading={loading} />
+
+      {/* Histórico */}
+      <MatchHistory matches={matches} loading={loading} />
 
       {/* Comunidade */}
       <CommunitySection />

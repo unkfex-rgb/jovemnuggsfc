@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -7,70 +7,95 @@ export default function Hero() {
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
     >
+      {/* Background with cinematic effects */}
       <div className="absolute inset-0 -z-10">
-        <img
+        <motion.img
+          initial={{ scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.4 }}
+          transition={{ duration: 2, ease: "easeOut" }}
           src="/manus-storage/hero-bg_62eb721f.png"
           alt="Background"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover blur-[2px]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/40 to-black" />
+        
+        {/* Animated Light Blobs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="container relative z-10 text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mb-8"
+          transition={{ duration: 1, type: "spring" }}
+          className="mb-12 relative inline-block"
         >
-          <div className="w-24 h-24 md:w-32 md:h-32 mx-auto mb-8">
+          <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
+          <div className="relative w-32 h-32 md:w-48 md:h-48 mx-auto">
             <img
               src="/manus-storage/logo-mark_a44f0256.png"
               alt="Logo"
-              className="w-full h-full"
+              className="w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
             />
           </div>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold text-gradient mb-4"
-        >
-          JOVEM NUGGS FC
-        </motion.h1>
+        <div className="relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
+              JOVEM NUGGS <span className="text-white/20">FC</span>
+            </h1>
+          </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-white/60 text-sm md:text-base tracking-widest uppercase mb-8"
-        >
-          Elite Squad • Professional Gaming
-        </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-white/40 text-sm md:text-lg tracking-[0.4em] uppercase mb-12 font-bold max-w-2xl mx-auto"
+          >
+            "Ninguém joga sozinho. Respeita a camisa."
+          </motion.p>
 
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          onClick={() =>
-            document
-              .getElementById("estatisticas")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-          className="btn-primary"
-        >
-          Explorar Estatísticas
-        </motion.button>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6"
+          >
+            <button
+              onClick={() =>
+                document
+                  .getElementById("estatisticas")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm rounded-xl overflow-hidden transition-all hover:pr-12"
+            >
+              <span className="relative z-10">Explorar Estatísticas</span>
+              <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all" size={20} />
+            </button>
+            
+            <a 
+              href="#elenco"
+              className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black uppercase tracking-widest text-sm rounded-xl hover:bg-white/10 transition-all"
+            >
+              Ver Elenco
+            </a>
+          </motion.div>
+        </div>
       </div>
 
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <ChevronDown className="text-white/40" size={32} />
+        <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Scroll</span>
+        <ChevronDown className="text-white/20" size={24} />
       </motion.div>
     </section>
   );

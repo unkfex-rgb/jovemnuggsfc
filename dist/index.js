@@ -652,6 +652,16 @@ var systemRouter = router({
 // server/routers.ts
 var CLUB_ID = "8044401";
 var API_BASE = "https://api.ourproclub.app/api";
+async function fetchMatchHistory() {
+  try {
+    const response = await fetch(`${API_BASE}/match/history?clubId=${CLUB_ID}`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao buscar hist\xF3rico de partidas:", error);
+    return [];
+  }
+}
 var appRouter = router({
   system: systemRouter,
   auth: router({
@@ -666,36 +676,30 @@ var appRouter = router({
   }),
   club: router({
     matchHistory: publicProcedure.query(async () => {
-      try {
-        const response = await fetch(`${API_BASE}/match/history?clubId=${CLUB_ID}`);
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Erro ao buscar hist\xF3rico de partidas:", error);
-        return [];
-      }
+      return await fetchMatchHistory();
     }),
     stats: publicProcedure.query(async () => {
-      try {
-        const response = await fetch(`${API_BASE}/match/history?clubId=${CLUB_ID}`);
-        const matches2 = await response.json();
-        const stats = {
-          totalMatches: matches2.length,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          totalGoals: 0,
-          totalConceded: 0,
-          players: {}
-        };
-        matches2.forEach((match) => {
-          const ourGoals = parseInt(match.match_data.clubs[CLUB_ID].goals);
-          const opponentGoals = Object.values(match.match_data.clubs).filter((club) => club.clubName !== "Jovem Nuggs FC").reduce((sum, club) => sum + parseInt(club.goals), 0);
-          stats.totalGoals += ourGoals;
-          stats.totalConceded += opponentGoals;
-          if (ourGoals > opponentGoals) stats.wins++;
-          else if (ourGoals < opponentGoals) stats.losses++;
-          else stats.draws++;
+      const matches2 = await fetchMatchHistory();
+      const stats = {
+        totalMatches: matches2.length,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        totalGoals: 0,
+        totalConceded: 0,
+        players: {}
+      };
+      if (!Array.isArray(matches2)) return stats;
+      matches2.forEach((match) => {
+        if (!match.match_data?.clubs?.[CLUB_ID]) return;
+        const ourGoals = parseInt(match.match_data.clubs[CLUB_ID].goals) || 0;
+        const opponentGoals = Object.values(match.match_data.clubs).filter((club) => club.clubName !== "Jovem Nuggs FC").reduce((sum, club) => sum + (parseInt(club.goals) || 0), 0);
+        stats.totalGoals += ourGoals;
+        stats.totalConceded += opponentGoals;
+        if (ourGoals > opponentGoals) stats.wins++;
+        else if (ourGoals < opponentGoals) stats.losses++;
+        else stats.draws++;
+        if (match.player_data) {
           Object.entries(match.player_data).forEach(([playerName, playerStats]) => {
             if (!stats.players[playerName]) {
               stats.players[playerName] = {
@@ -707,27 +711,24 @@ var appRouter = router({
                 position: playerStats.pos
               };
             }
-            stats.players[playerName].goals += parseInt(playerStats.goals);
-            stats.players[playerName].assists += parseInt(playerStats.assists);
+            stats.players[playerName].goals += parseInt(playerStats.goals) || 0;
+            stats.players[playerName].assists += parseInt(playerStats.assists) || 0;
             stats.players[playerName].matches += 1;
-            stats.players[playerName].totalRating += parseFloat(playerStats.rating);
+            stats.players[playerName].totalRating += parseFloat(playerStats.rating) || 0;
           });
-        });
-        Object.values(stats.players).forEach((player) => {
-          player.averageRating = (player.totalRating / player.matches).toFixed(2);
-        });
-        return stats;
-      } catch (error) {
-        console.error("Erro ao buscar estat\xEDsticas:", error);
-        return null;
-      }
+        }
+      });
+      Object.values(stats.players).forEach((player) => {
+        player.averageRating = (player.totalRating / player.matches).toFixed(2);
+      });
+      return stats;
     }),
     topPlayers: publicProcedure.query(async () => {
-      try {
-        const response = await fetch(`${API_BASE}/match/history?clubId=${CLUB_ID}`);
-        const matches2 = await response.json();
-        const players2 = {};
-        matches2.forEach((match) => {
+      const matches2 = await fetchMatchHistory();
+      const players2 = {};
+      if (!Array.isArray(matches2)) return { topByGoals: [], topByAssists: [], topByRating: [] };
+      matches2.forEach((match) => {
+        if (match.player_data) {
           Object.entries(match.player_data).forEach(([playerName, playerStats]) => {
             if (!players2[playerName]) {
               players2[playerName] = {
@@ -739,23 +740,20 @@ var appRouter = router({
                 position: playerStats.pos
               };
             }
-            players2[playerName].goals += parseInt(playerStats.goals);
-            players2[playerName].assists += parseInt(playerStats.assists);
+            players2[playerName].goals += parseInt(playerStats.goals) || 0;
+            players2[playerName].assists += parseInt(playerStats.assists) || 0;
             players2[playerName].matches += 1;
-            players2[playerName].totalRating += parseFloat(playerStats.rating);
+            players2[playerName].totalRating += parseFloat(playerStats.rating) || 0;
           });
-        });
-        Object.values(players2).forEach((player) => {
-          player.averageRating = (player.totalRating / player.matches).toFixed(2);
-        });
-        const topByGoals = Object.values(players2).sort((a, b) => b.goals - a.goals).slice(0, 5);
-        const topByAssists = Object.values(players2).sort((a, b) => b.assists - a.assists).slice(0, 5);
-        const topByRating = Object.values(players2).sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating)).slice(0, 5);
-        return { topByGoals, topByAssists, topByRating };
-      } catch (error) {
-        console.error("Erro ao buscar top jogadores:", error);
-        return null;
-      }
+        }
+      });
+      Object.values(players2).forEach((player) => {
+        player.averageRating = (player.totalRating / player.matches).toFixed(2);
+      });
+      const topByGoals = Object.values(players2).sort((a, b) => b.goals - a.goals).slice(0, 5);
+      const topByAssists = Object.values(players2).sort((a, b) => b.assists - a.assists).slice(0, 5);
+      const topByRating = Object.values(players2).sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating)).slice(0, 5);
+      return { topByGoals, topByAssists, topByRating };
     })
   })
 });
@@ -969,7 +967,7 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = process.env.NODE_ENV === "development" ? path2.resolve(import.meta.dirname, "../..", "dist", "public") : path2.resolve(import.meta.dirname, "public");
+  const distPath = path2.resolve(process.cwd(), "dist", "public");
   if (!fs2.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
@@ -977,7 +975,12 @@ function serveStatic(app) {
   }
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
+    const indexPath = path2.resolve(distPath, "index.html");
+    if (fs2.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send("Not found");
+    }
   });
 }
 
@@ -1028,3 +1031,22 @@ async function startServer() {
   });
 }
 startServer().catch(console.error);
+var index_default = async (req, res) => {
+  const app = express2();
+  const server = createServer(app);
+  app.use(express2.json({ limit: "50mb" }));
+  app.use(express2.urlencoded({ limit: "50mb", extended: true }));
+  registerStorageProxy(app);
+  registerOAuthRoutes(app);
+  app.use(
+    "/api/trpc",
+    createExpressMiddleware({
+      router: appRouter,
+      createContext
+    })
+  );
+  return app(req, res);
+};
+export {
+  index_default as default
+};
