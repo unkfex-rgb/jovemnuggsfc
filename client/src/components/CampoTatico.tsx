@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
-import { getInitials, calculatePlayerScore } from '../lib/playerUtils';
+import { getInitials } from '../lib/playerUtils';
 import { Target, Zap, Shield } from 'lucide-react';
 import type { Player } from '@/types/api';
 
@@ -15,43 +15,35 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
   const formation = useMemo(() => {
     if (players.length === 0) return null;
 
-    const sortedPlayers = [...players].sort((a, b) => calculatePlayerScore(b) - calculatePlayerScore(a));
-    
-    // Leaders for stars
+    // Leaders for stars (calculated from all players)
     const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0]?.name;
     const topAssister = [...players].sort((a, b) => b.assists - a.assists)[0]?.name;
     const topDefender = [...players]
       .filter(p => p.position.toLowerCase().includes('gk') || p.position.toLowerCase().includes('def'))
       .sort((a, b) => (b.cleanSheets || 0) - (a.cleanSheets || 0))[0]?.name;
 
-    const getBestByPos = (posKeywords: string[], count: number, excludeIds: Set<string>) => {
-      const found = sortedPlayers
-        .filter(p => !excludeIds.has(p.name) && posKeywords.some(k => p.position.toLowerCase().includes(k)))
-        .slice(0, count);
-      
-      found.forEach(p => excludeIds.add(p.name));
-      return found;
+    // Fixed starters provided by user
+    const startersNames = {
+      st: ['ARAUJOX77_'],
+      ams: ['MXNDINI', 'PECINHA22', 'CORINTI420'],
+      cdms: ['VINIM71655', 'PEDROFERLK'],
+      defs: ['TAVIN', 'SCOOBY', 'CELTA4656', 'JESSYSZ0'],
+      gk: ['DGHS100']
     };
 
-    const usedNames = new Set<string>();
-    
-    // 4-2-3-1 Formation logic
-    const gk = getBestByPos(['goalkeeper', 'gk', 'goleiro'], 1, usedNames)[0];
-    const st = getBestByPos(['forward', 'att', 'striker', 'ata', 'st'], 1, usedNames);
-    const ams = getBestByPos(['midfielder', 'mid', 'meio', 'cam', 'lam', 'ram'], 3, usedNames);
-    const cdms = getBestByPos(['midfielder', 'mid', 'meio', 'cdm', 'vol'], 2, usedNames);
-    const defs = getBestByPos(['defender', 'def', 'back', 'lat', 'zag'], 4, usedNames);
+    const findByExactName = (name: string) => {
+      // Try exact match first, then case-insensitive
+      return players.find(p => p.name === name) || 
+             players.find(p => p.name.toLowerCase() === name.toLowerCase()) ||
+             // Fallback to a dummy player if not found in API yet
+             { name, position: 'N/A', goals: 0, assists: 0, matches: 0, avgRating: 0, cleanSheets: 0 } as any;
+    };
 
-    // Fallbacks if not enough players in specific positions
-    if (usedNames.size < 11) {
-      const remaining = sortedPlayers.filter(p => !usedNames.has(p.name)).slice(0, 11 - usedNames.size);
-      remaining.forEach(p => {
-        if (st.length < 1) st.push(p);
-        else if (ams.length < 3) ams.push(p);
-        else if (cdms.length < 2) cdms.push(p);
-        else if (defs.length < 4) defs.push(p);
-      });
-    }
+    const gk = findByExactName(startersNames.gk[0]);
+    const st = startersNames.st.map(findByExactName);
+    const ams = startersNames.ams.map(findByExactName);
+    const cdms = startersNames.cdms.map(findByExactName);
+    const defs = startersNames.defs.map(findByExactName);
 
     return { gk, defs, cdms, ams, st, leaders: { topScorer, topAssister, topDefender } };
   }, [players]);
