@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
 import { getInitials, calculatePlayerScore } from '../lib/playerUtils';
-import { Star, Target, Zap, Shield } from 'lucide-react';
+import { Target, Zap, Shield } from 'lucide-react';
 import type { Player } from '@/types/api';
 
 interface CampoTaticoProps {
@@ -35,21 +35,25 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
 
     const usedNames = new Set<string>();
     
+    // 4-2-3-1 Formation logic
     const gk = getBestByPos(['goalkeeper', 'gk', 'goleiro'], 1, usedNames)[0];
+    const st = getBestByPos(['forward', 'att', 'striker', 'ata', 'st'], 1, usedNames);
+    const ams = getBestByPos(['midfielder', 'mid', 'meio', 'cam', 'lam', 'ram'], 3, usedNames);
+    const cdms = getBestByPos(['midfielder', 'mid', 'meio', 'cdm', 'vol'], 2, usedNames);
     const defs = getBestByPos(['defender', 'def', 'back', 'lat', 'zag'], 4, usedNames);
-    const mids = getBestByPos(['midfielder', 'mid', 'meio', 'vol'], 3, usedNames);
-    const fwds = getBestByPos(['forward', 'att', 'striker', 'ata', 'ponta'], 3, usedNames);
 
+    // Fallbacks if not enough players in specific positions
     if (usedNames.size < 11) {
       const remaining = sortedPlayers.filter(p => !usedNames.has(p.name)).slice(0, 11 - usedNames.size);
       remaining.forEach(p => {
-        if (defs.length < 4) defs.push(p);
-        else if (mids.length < 3) mids.push(p);
-        else if (fwds.length < 3) fwds.push(p);
+        if (st.length < 1) st.push(p);
+        else if (ams.length < 3) ams.push(p);
+        else if (cdms.length < 2) cdms.push(p);
+        else if (defs.length < 4) defs.push(p);
       });
     }
 
-    return { gk, defs, mids, fwds, leaders: { topScorer, topAssister, topDefender } };
+    return { gk, defs, cdms, ams, st, leaders: { topScorer, topAssister, topDefender } };
   }, [players]);
 
   if (!formation && !loading) return null;
@@ -61,8 +65,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
         <h2 className="text-4xl md:text-6xl font-bold mb-16 tracking-tighter">CAMPO TÁTICO</h2>
       </Reveal>
 
-      {/* Aumentado o aspect ratio para dar mais verticalidade (de 16/9 para 16/12 ou similar) */}
-      <div className="relative aspect-[3/4] md:aspect-[4/5] lg:aspect-[16/14] w-full max-w-5xl mx-auto glass-dark rounded-[3rem] border border-white/10 overflow-hidden p-8 md:p-16">
+      <div className="relative aspect-[3/4.5] md:aspect-[4/6] lg:aspect-[16/18] w-full max-w-5xl mx-auto glass-dark rounded-[3rem] border border-white/10 overflow-hidden p-8 md:p-16">
         {/* Soccer Field Lines */}
         <div className="absolute inset-8 md:inset-16 border-2 border-white/10 rounded-xl pointer-events-none">
           <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/10 -translate-y-1/2" />
@@ -70,65 +73,42 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
           
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 border-2 border-t-0 border-white/10" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-80 h-40 border-2 border-b-0 border-white/10" />
-          
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-16 border-2 border-t-0 border-white/10" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-16 border-2 border-b-0 border-white/10" />
         </div>
 
-        {/* Players Layout (4-3-3) with more vertical spacing */}
-        <div className="relative h-full flex flex-col justify-between py-8">
-          {/* Forwards (3) */}
-          <div className="flex justify-around items-center px-4">
-            {formation?.fwds.map((p, i) => (
-              <PlayerSpot 
-                key={p.name} 
-                player={p} 
-                delay={0.1 * i} 
-                isTopScorer={p.name === formation.leaders.topScorer}
-                isTopAssister={p.name === formation.leaders.topAssister}
-                isTopDefender={p.name === formation.leaders.topDefender}
-              />
+        {/* 4-2-3-1 Layout */}
+        <div className="relative h-full flex flex-col justify-between py-12">
+          {/* ST (1) */}
+          <div className="flex justify-center items-center">
+            {formation?.st.map((p, i) => (
+              <PlayerSpot key={p.name} player={p} delay={0.1} leaders={formation.leaders} />
             ))}
           </div>
 
-          {/* Midfielders (3) */}
-          <div className="flex justify-center gap-12 md:gap-32 items-center">
-            {formation?.mids.map((p, i) => (
-              <PlayerSpot 
-                key={p.name} 
-                player={p} 
-                delay={0.3 + 0.1 * i} 
-                isTopScorer={p.name === formation.leaders.topScorer}
-                isTopAssister={p.name === formation.leaders.topAssister}
-                isTopDefender={p.name === formation.leaders.topDefender}
-              />
+          {/* AMs (3) - LAM, CAM, RAM */}
+          <div className="flex justify-around items-center px-4">
+            {formation?.ams.map((p, i) => (
+              <PlayerSpot key={p.name} player={p} delay={0.3 + 0.1 * i} leaders={formation.leaders} />
+            ))}
+          </div>
+
+          {/* CDMs (2) */}
+          <div className="flex justify-center gap-24 md:gap-48 items-center">
+            {formation?.cdms.map((p, i) => (
+              <PlayerSpot key={p.name} player={p} delay={0.5 + 0.1 * i} leaders={formation.leaders} />
             ))}
           </div>
 
           {/* Defenders (4) */}
           <div className="flex justify-around items-center">
             {formation?.defs.map((p, i) => (
-              <PlayerSpot 
-                key={p.name} 
-                player={p} 
-                delay={0.6 + 0.1 * i} 
-                isTopScorer={p.name === formation.leaders.topScorer}
-                isTopAssister={p.name === formation.leaders.topAssister}
-                isTopDefender={p.name === formation.leaders.topDefender}
-              />
+              <PlayerSpot key={p.name} player={p} delay={0.7 + 0.1 * i} leaders={formation.leaders} />
             ))}
           </div>
 
           {/* Goalkeeper (1) */}
           <div className="flex justify-center items-center">
             {formation?.gk && (
-              <PlayerSpot 
-                player={formation.gk} 
-                delay={0.9} 
-                isTopScorer={formation.gk.name === formation.leaders.topScorer}
-                isTopAssister={formation.gk.name === formation.leaders.topAssister}
-                isTopDefender={formation.gk.name === formation.leaders.topDefender}
-              />
+              <PlayerSpot player={formation.gk} delay={0.9} leaders={formation.leaders} />
             )}
           </div>
         </div>
@@ -161,12 +141,14 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
 interface PlayerSpotProps {
   player: Player;
   delay: number;
-  isTopScorer?: boolean;
-  isTopAssister?: boolean;
-  isTopDefender?: boolean;
+  leaders: { topScorer?: string; topAssister?: string; topDefender?: string };
 }
 
-function PlayerSpot({ player, delay, isTopScorer, isTopAssister, isTopDefender }: PlayerSpotProps) {
+function PlayerSpot({ player, delay, leaders }: PlayerSpotProps) {
+  const isTopScorer = player.name === leaders.topScorer;
+  const isTopAssister = player.name === leaders.topAssister;
+  const isTopDefender = player.name === leaders.topDefender;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0 }}
@@ -179,32 +161,19 @@ function PlayerSpot({ player, delay, isTopScorer, isTopAssister, isTopDefender }
         whileHover={{ y: -5 }}
         className="flex flex-col items-center"
       >
-        {/* Star / Highlight Icons */}
         <div className="absolute -top-8 flex gap-1">
           {isTopScorer && (
-            <motion.div 
-              animate={{ y: [0, -3, 0] }} 
-              transition={{ duration: 2, repeat: Infinity }}
-              className="p-1 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.6)]"
-            >
+            <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity }} className="p-1 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.6)]">
               <Target size={10} className="text-black" />
             </motion.div>
           )}
           {isTopAssister && (
-            <motion.div 
-              animate={{ y: [0, -3, 0] }} 
-              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              className="p-1 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]"
-            >
+            <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} className="p-1 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.6)]">
               <Zap size={10} className="text-black" />
             </motion.div>
           )}
           {isTopDefender && (
-            <motion.div 
-              animate={{ y: [0, -3, 0] }} 
-              transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              className="p-1 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.6)]"
-            >
+            <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, delay: 1 }} className="p-1 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.6)]">
               <Shield size={10} className="text-black" />
             </motion.div>
           )}
@@ -212,8 +181,6 @@ function PlayerSpot({ player, delay, isTopScorer, isTopAssister, isTopDefender }
 
         <div className="w-12 h-12 md:w-20 md:h-20 rounded-full glass border border-white/20 flex items-center justify-center mb-3 group-hover:border-white group-hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all relative">
           <span className="text-xs md:text-xl font-black text-white">{getInitials(player.name)}</span>
-          
-          {/* Rating Badge */}
           <div className="absolute -top-1 -right-1 w-6 h-6 md:w-8 md:h-8 rounded-full bg-white text-black flex items-center justify-center text-[10px] md:text-xs font-black shadow-xl">
             {player.avgRating.toFixed(1)}
           </div>
