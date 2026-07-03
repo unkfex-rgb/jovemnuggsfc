@@ -15,12 +15,12 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
   const formation = useMemo(() => {
     if (players.length === 0) return null;
 
-    // Leaders for stars (calculated from all players)
-    const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0]?.name;
-    const topAssister = [...players].sort((a, b) => b.assists - a.assists)[0]?.name;
-    const topDefender = [...players]
-      .filter(p => p.position.toLowerCase().includes('gk') || p.position.toLowerCase().includes('def'))
-      .sort((a, b) => (b.cleanSheets || 0) - (a.cleanSheets || 0))[0]?.name;
+    // Fixed leaders provided by user
+    const leaders = {
+      topScorer: 'PEDROFERLK',
+      topAssister: 'CORINTI420',
+      topDefender: 'DGHS100'
+    };
 
     // Fixed starters provided by user
     const startersNames = {
@@ -32,10 +32,8 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
     };
 
     const findByExactName = (name: string) => {
-      // Try exact match first, then case-insensitive
       return players.find(p => p.name === name) || 
              players.find(p => p.name.toLowerCase() === name.toLowerCase()) ||
-             // Fallback to a dummy player if not found in API yet
              { name, position: 'N/A', goals: 0, assists: 0, matches: 0, avgRating: 0, cleanSheets: 0 } as any;
     };
 
@@ -45,7 +43,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
     const cdms = startersNames.cdms.map(findByExactName);
     const defs = startersNames.defs.map(findByExactName);
 
-    return { gk, defs, cdms, ams, st, leaders: { topScorer, topAssister, topDefender } };
+    return { gk, defs, cdms, ams, st, leaders };
   }, [players]);
 
   if (!formation && !loading) return null;
