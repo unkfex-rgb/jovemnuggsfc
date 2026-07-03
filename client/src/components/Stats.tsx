@@ -11,55 +11,91 @@ export default memo(function Stats() {
   
   return (
     <section id="stats" className="relative py-20 px-5 overflow-hidden">
-      {/* Watermark do escudo */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <img 
-          src="/escudo-linha-transparente.png" 
-          alt="" 
-          className="w-full h-full object-cover"
-        />
-      </div>
+      {/* Fundo preto com grid pattern */}
+      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 opacity-3" style={{
+        backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent),
+                         linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent)`,
+        backgroundSize: '50px 50px'
+      }} />
 
-      {/* Fundo com gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent pointer-events-none" />
+      {/* Neon glow sutil */}
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
 
       <div className="max-w-270 mx-auto relative z-10">
-        <h2 className="text-5 md:text-8 font-900 tracking-wider mb-16 font-orbitron text-center">
-          <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Estatísticas do Time
-          </span>
+        <h2 className="text-5 md:text-8 font-900 tracking-widest mb-16 font-orbitron text-center text-white" style={{
+          textShadow: '0 0 20px rgba(0, 255, 255, 0.4)',
+          letterSpacing: '0.08em'
+        }}>
+          ESTATÍSTICAS DO TIME
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="group relative overflow-hidden rounded-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
-            <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-cyan-400 mb-2">{totalMatches}</div>
-              <div className="text-2.75 text-gray-400 font-mono">Partidas</div>
+          {/* Partidas */}
+          <div className="group relative overflow-hidden bg-black border border-cyan-400/40 p-6 cursor-pointer transition-all duration-300 hover:border-cyan-400/80" style={{
+            boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)'
+          }} onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+          }} onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+          }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="text-5 font-900 text-white mb-2">{totalMatches}</div>
+              <div className="text-2.75 text-gray-400 font-mono uppercase tracking-widest">Partidas</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
-            <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-green-400 mb-2">{wins}</div>
-              <div className="text-2.75 text-gray-400 font-mono">Vitórias</div>
+          {/* Vitórias */}
+          <div className="group relative overflow-hidden bg-black border border-cyan-400/40 p-6 cursor-pointer transition-all duration-300 hover:border-cyan-400/80" style={{
+            boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)'
+          }} onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+          }} onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+          }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="text-5 font-900 text-white mb-2">{wins}</div>
+              <div className="text-2.75 text-gray-400 font-mono uppercase tracking-widest">Vitórias</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
-            <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-purple-400 mb-2">{totalGoals}</div>
-              <div className="text-2.75 text-gray-400 font-mono">Gols</div>
+          {/* Gols */}
+          <div className="group relative overflow-hidden bg-black border border-cyan-400/40 p-6 cursor-pointer transition-all duration-300 hover:border-cyan-400/80" style={{
+            boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)'
+          }} onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+          }} onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+          }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="text-5 font-900 text-white mb-2">{totalGoals}</div>
+              <div className="text-2.75 text-gray-400 font-mono uppercase tracking-widest">Gols</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-lg">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur-xl transition-all duration-300" />
-            <div className="relative bg-black border border-white/10 rounded-lg overflow-hidden hover:border-white/30 transition-all duration-300 p-6">
-              <div className="text-5 font-900 text-yellow-400 mb-2">{totalAssists}</div>
-              <div className="text-2.75 text-gray-400 font-mono">Assistências</div>
+          {/* Assistências */}
+          <div className="group relative overflow-hidden bg-black border border-cyan-400/40 p-6 cursor-pointer transition-all duration-300 hover:border-cyan-400/80" style={{
+            boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)'
+          }} onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+          }} onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+            e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+          }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="text-5 font-900 text-white mb-2">{totalAssists}</div>
+              <div className="text-2.75 text-gray-400 font-mono uppercase tracking-widest">Assistências</div>
             </div>
           </div>
         </div>

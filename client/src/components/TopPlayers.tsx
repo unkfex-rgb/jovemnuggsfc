@@ -1,16 +1,9 @@
 import React, { memo } from 'react';
 import { trpc } from '../lib/trpc';
-import { getInitials, getPositionColor, getPositionLabel } from '../lib/playerUtils';
+import { getInitials, getPositionLabel } from '../lib/playerUtils';
 import { motion } from 'framer-motion';
 
 const TopPlayerCard = memo(({ player, rank, category }: any) => {
-  const colorMap = {
-    goals: 'from-red-500 to-pink-400',
-    assists: 'from-blue-500 to-cyan-400',
-    rating: 'from-yellow-500 to-orange-400',
-  };
-
-  const color = colorMap[category as keyof typeof colorMap];
   const positionLabel = getPositionLabel(player.position);
 
   return (
@@ -23,14 +16,19 @@ const TopPlayerCard = memo(({ player, rank, category }: any) => {
       viewport={{ once: true }}
       className="group relative"
     >
-      {/* Animated glow background */}
-      <div className={`absolute -inset-0.5 bg-gradient-to-r ${color} rounded-xl opacity-0 group-hover:opacity-60 blur-lg transition-all duration-500`} />
-
       {/* Card Container */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black border border-white/10 group-hover:border-white/30 rounded-xl p-5 text-center transition-all duration-300 overflow-hidden">
+      <div className="relative bg-black border border-cyan-400/40 rounded-none p-5 text-center transition-all duration-300 overflow-hidden hover:border-cyan-400/80" style={{
+        boxShadow: '0 0 10px rgba(0, 255, 255, 0.2)'
+      }} onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.8)';
+        e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+      }} onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+        e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.2)';
+      }}>
         {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{
-          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)',
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300" style={{
+          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%)',
         }} />
 
         {/* Content */}
@@ -41,7 +39,9 @@ const TopPlayerCard = memo(({ player, rank, category }: any) => {
             whileInView={{ scale: 1 }}
             transition={{ delay: 0.1, type: 'spring', stiffness: 300 }}
             viewport={{ once: true }}
-            className={`text-5 font-900 mb-3 bg-gradient-to-r ${color} bg-clip-text text-transparent`}
+            className="text-4 font-900 mb-3 text-cyan-400 font-mono" style={{
+              textShadow: '0 0 10px rgba(0, 255, 255, 0.5)'
+            }}
           >
             #{rank}
           </motion.div>
@@ -49,24 +49,28 @@ const TopPlayerCard = memo(({ player, rank, category }: any) => {
           {/* Avatar */}
           <motion.div
             whileHover={{ scale: 1.1 }}
-            className={`w-14 h-14 rounded-lg mx-auto mb-3 flex items-center justify-center font-orbitron font-700 text-4 text-white bg-gradient-to-br ${getPositionColor(player.position)} shadow-lg shadow-cyan-500/20 border-2 border-white/20 group-hover:border-white/50 transition-all duration-300`}
+            className="w-14 h-14 rounded-none mx-auto mb-3 flex items-center justify-center font-orbitron font-700 text-3 text-black bg-white border-2 border-cyan-400 group-hover:border-cyan-300 transition-all duration-300" style={{
+              boxShadow: '0 0 10px rgba(0, 255, 255, 0.3)'
+            }}
           >
             {getInitials(player.name)}
           </motion.div>
 
           {/* Player Name */}
-          <h3 className="text-3 font-800 truncate text-white mb-1 group-hover:text-cyan-300 transition-colors duration-300">
+          <h3 className="text-2.5 font-800 truncate text-white mb-1 group-hover:text-cyan-300 transition-colors duration-300 font-mono">
             {player.name}
           </h3>
 
           {/* Position */}
-          <p className="text-2.5 text-gray-400 uppercase tracking-wide mb-3">{positionLabel}</p>
+          <p className="text-2 text-gray-400 uppercase tracking-wide mb-3 font-mono">{positionLabel}</p>
 
           {/* Main Stat */}
-          <div className={`text-4 font-900 bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
-            {category === 'goals' && `${player.goals} Gols`}
-            {category === 'assists' && `${player.assists} Assist`}
-            {category === 'rating' && `${player.averageRating} ⭐`}
+          <div className="text-3.5 font-900 text-white font-mono" style={{
+            textShadow: '0 0 10px rgba(0, 255, 255, 0.3)'
+          }}>
+            {category === 'goals' && `${player.goals} GOLS`}
+            {category === 'assists' && `${player.assists} ASSIST`}
+            {category === 'rating' && `${player.averageRating}`}
           </div>
         </div>
       </div>
@@ -86,7 +90,7 @@ export default memo(function TopPlayers() {
           <motion.div
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-3.5"
+            className="text-3.5 font-mono"
           >
             Carregando top jogadores...
           </motion.div>
@@ -108,10 +112,17 @@ export default memo(function TopPlayers() {
 
   return (
     <section className="relative py-20 px-5 overflow-hidden">
-      {/* Background gradient effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 via-transparent to-yellow-500/5 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl opacity-20 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl opacity-20 pointer-events-none" />
+      {/* Fundo preto com grid pattern */}
+      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 opacity-3" style={{
+        backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent),
+                         linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent)`,
+        backgroundSize: '50px 50px'
+      }} />
+
+      {/* Neon glow sutil */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
 
       <div className="max-w-270 mx-auto relative z-10">
         {/* Section Title */}
@@ -122,12 +133,13 @@ export default memo(function TopPlayers() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h2 className="text-5 md:text-8 font-900 tracking-wider mb-4 font-orbitron text-center">
-            <span className="bg-gradient-to-r from-red-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-              Top Jogadores
-            </span>
+          <h2 className="text-5 md:text-8 font-900 tracking-widest mb-4 font-orbitron text-center text-white" style={{
+            textShadow: '0 0 20px rgba(0, 255, 255, 0.4)',
+            letterSpacing: '0.08em'
+          }}>
+            TOP JOGADORES
           </h2>
-          <p className="text-center text-gray-400 text-3 md:text-3.5">
+          <p className="text-center text-gray-400 text-3 md:text-3.5 font-mono">
             Destaques por categoria de desempenho
           </p>
         </motion.div>
@@ -135,9 +147,9 @@ export default memo(function TopPlayers() {
         {/* Categories */}
         <div className="space-y-16">
           {[
-            { title: 'Top Gols 🔴', players: topData.topByGoals, category: 'goals', color: 'from-red-500 to-pink-400', icon: '⚽' },
-            { title: 'Top Assistências 🔵', players: topData.topByAssists, category: 'assists', color: 'from-blue-500 to-cyan-400', icon: '🎯' },
-            { title: 'Top Rating ⭐', players: topData.topByRating, category: 'rating', color: 'from-yellow-500 to-orange-400', icon: '👑' },
+            { title: 'TOP GOLS', players: topData.topByGoals, category: 'goals', icon: '⚽' },
+            { title: 'TOP ASSISTÊNCIAS', players: topData.topByAssists, category: 'assists', icon: '🎯' },
+            { title: 'TOP RATING', players: topData.topByRating, category: 'rating', icon: '👑' },
           ].map((section, idx) => (
             <motion.div
               key={idx}
@@ -152,7 +164,9 @@ export default memo(function TopPlayers() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
                 viewport={{ once: true }}
-                className={`text-3.5 md:text-5 font-800 mb-8 font-orbitron bg-gradient-to-r ${section.color} bg-clip-text text-transparent flex items-center gap-3`}
+                className="text-3.5 md:text-5 font-800 mb-8 font-orbitron text-white flex items-center gap-3 tracking-widest" style={{
+                  textShadow: '0 0 15px rgba(0, 255, 255, 0.3)'
+                }}
               >
                 <span>{section.icon}</span>
                 {section.title}

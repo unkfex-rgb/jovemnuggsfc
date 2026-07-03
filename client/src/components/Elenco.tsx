@@ -1,4 +1,4 @@
-import React, { useMemo, memo, useState } from 'react';
+import React, { memo, useState, useMemo } from 'react';
 import { trpc } from '../lib/trpc';
 import { PlayerCard } from './PlayerCard';
 import { getPositionCategory, getPositionLabel } from '../lib/playerUtils';
@@ -45,10 +45,17 @@ export default memo(function Elenco() {
 
   return (
     <section className="relative py-20 px-5 overflow-hidden">
-      {/* Background gradient effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent pointer-events-none" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl opacity-20 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl opacity-20 pointer-events-none" />
+      {/* Fundo preto com grid pattern */}
+      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 opacity-3" style={{
+        backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent),
+                         linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, 0.03) 25%, rgba(0, 255, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, 0.03) 75%, rgba(0, 255, 255, 0.03) 76%, transparent 77%, transparent)`,
+        backgroundSize: '50px 50px'
+      }} />
+
+      {/* Neon glow sutil */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/5 blur-3xl rounded-full opacity-30" />
 
       <div className="max-w-270 mx-auto relative z-10">
         {/* Section Title */}
@@ -59,12 +66,13 @@ export default memo(function Elenco() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h2 className="text-5 md:text-8 font-900 tracking-wider mb-4 font-orbitron text-center">
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Elenco Completo
-            </span>
+          <h2 className="text-5 md:text-8 font-900 tracking-widest mb-4 font-orbitron text-center text-white" style={{
+            textShadow: '0 0 20px rgba(0, 255, 255, 0.4)',
+            letterSpacing: '0.08em'
+          }}>
+            ELENCO COMPLETO
           </h2>
-          <p className="text-center text-gray-400 text-3 md:text-3.5">
+          <p className="text-center text-gray-400 text-3 md:text-3.5 font-mono">
             {filteredPlayers.length} jogador{filteredPlayers.length !== 1 ? 'es' : ''} no elenco
           </p>
         </motion.div>
@@ -81,11 +89,16 @@ export default memo(function Elenco() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedPosition(null)}
-            className={`px-6 py-2.5 rounded-lg font-bold text-2.5 transition-all duration-300 ${
+            className={`px-6 py-2.5 font-bold text-2.5 transition-all duration-300 border font-mono uppercase tracking-widest ${
               selectedPosition === null
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50'
-                : 'bg-white/5 border border-white/10 text-gray-300 hover:border-cyan-500/50'
+                ? 'bg-black border-cyan-400 text-cyan-400'
+                : 'bg-black border-cyan-400/30 text-gray-400 hover:border-cyan-400/60'
             }`}
+            style={selectedPosition === null ? {
+              boxShadow: '0 0 15px rgba(0, 255, 255, 0.5)'
+            } : {
+              boxShadow: '0 0 8px rgba(0, 255, 255, 0.2)'
+            }}
           >
             Todos
           </motion.button>
@@ -96,11 +109,16 @@ export default memo(function Elenco() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedPosition(pos)}
-              className={`px-6 py-2.5 rounded-lg font-bold text-2.5 transition-all duration-300 ${
+              className={`px-6 py-2.5 font-bold text-2.5 transition-all duration-300 border font-mono uppercase tracking-widest ${
                 selectedPosition === pos
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50'
-                  : 'bg-white/5 border border-white/10 text-gray-300 hover:border-cyan-500/50'
+                  ? 'bg-black border-cyan-400 text-cyan-400'
+                  : 'bg-black border-cyan-400/30 text-gray-400 hover:border-cyan-400/60'
               }`}
+              style={selectedPosition === pos ? {
+                boxShadow: '0 0 15px rgba(0, 255, 255, 0.5)'
+              } : {
+                boxShadow: '0 0 8px rgba(0, 255, 255, 0.2)'
+              }}
             >
               {getPositionLabel(pos)}
             </motion.button>
@@ -122,15 +140,10 @@ export default memo(function Elenco() {
           ))}
         </motion.div>
 
-        {/* Empty State */}
         {filteredPlayers.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <p className="text-gray-400 text-3.5">Nenhum jogador encontrado nesta posição.</p>
-          </motion.div>
+          <div className="text-center py-12">
+            <div className="text-gray-400 font-mono">Nenhum jogador encontrado.</div>
+          </div>
         )}
       </div>
     </section>
