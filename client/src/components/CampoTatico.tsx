@@ -15,20 +15,20 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
   const formation = useMemo(() => {
     if (players.length === 0) return null;
 
-    // Fixed leaders provided by user
+    // Fixed leaders provided by user with updated names
     const leaders = {
-      topScorer: 'PEDROFERLK',
-      topAssister: 'CORINTI420',
-      topDefender: 'DGHS100'
+      topScorer: 'pedrofeRLK',
+      topAssister: 'corintia4i20',
+      topDefender: 'Dghs100'
     };
 
-    // Fixed starters provided by user
+    // Fixed starters provided by user with updated names
     const startersNames = {
       st: ['araujozx77_'],
-      ams: ['MXNDINI', 'PECINHA22', 'CORINTI420'],
-      cdms: ['VINIM71655', 'PEDROFERLK'],
-      defs: ['TAVIN', 'SCOOBY', 'CELTA4656', 'JESSYSZ0'],
-      gk: ['DGHS100']
+      ams: ['mxndini', 'PECINHAA22', 'corintia4i20'],
+      cdms: ['Vinim71655', 'pedrofeRLK'],
+      defs: ['tavin__07', 'scobyzinn', 'CELTA4656', 'Jessysz0'],
+      gk: ['Dghs100']
     };
 
     const findByExactName = (name: string) => {
@@ -135,9 +135,9 @@ interface PlayerSpotProps {
 }
 
 function PlayerSpot({ player, delay, leaders }: PlayerSpotProps) {
-  const isTopScorer = player.name === leaders.topScorer;
-  const isTopAssister = player.name === leaders.topAssister;
-  const isTopDefender = player.name === leaders.topDefender;
+  const isTopScorer = player.name.toLowerCase() === leaders.topScorer?.toLowerCase();
+  const isTopAssister = player.name.toLowerCase() === leaders.topAssister?.toLowerCase();
+  const isTopDefender = player.name.toLowerCase() === leaders.topDefender?.toLowerCase();
 
   return (
     <motion.div
