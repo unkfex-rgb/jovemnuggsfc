@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
-import { getInitials } from '../lib/playerUtils';
+import { getInitials, calculatePlayerScore } from '../lib/playerUtils';
 import type { Player } from '@/types/api';
 
 interface CampoTaticoProps {
@@ -14,16 +14,35 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
   const formation = useMemo(() => {
     if (players.length === 0) return null;
 
-    // Filter by position and take the best rated
-    const getBest = (pos: string, count: number) => 
-      players.filter(p => p.position.toLowerCase().includes(pos.toLowerCase()))
-             .sort((a, b) => b.avgRating - a.avgRating)
-             .slice(0, count);
+    // Sort players by their custom score to get the "best" for each position
+    const sortedPlayers = [...players].sort((a, b) => calculatePlayerScore(b) - calculatePlayerScore(a));
 
-    const gk = getBest('gk', 1)[0] || getBest('goalkeeper', 1)[0];
-    const defs = getBest('def', 4);
-    const mids = getBest('mid', 3);
-    const fwds = getBest('att', 3) || getBest('forward', 3);
+    const getBestByPos = (posKeywords: string[], count: number, excludeIds: Set<string>) => {
+      const found = sortedPlayers
+        .filter(p => !excludeIds.has(p.name) && posKeywords.some(k => p.position.toLowerCase().includes(k)))
+        .slice(0, count);
+      
+      found.forEach(p => excludeIds.add(p.name));
+      return found;
+    };
+
+    const usedNames = new Set<string>();
+    
+    const gk = getBestByPos(['goalkeeper', 'gk', 'goleiro'], 1, usedNames)[0];
+    const defs = getBestByPos(['defender', 'def', 'back', 'lat', 'zag'], 4, usedNames);
+    const mids = getBestByPos(['midfielder', 'mid', 'meio', 'vol'], 3, usedNames);
+    const fwds = getBestByPos(['forward', 'att', 'striker', 'ata', 'ponta'], 3, usedNames);
+
+    // Fill gaps if not enough players in specific positions
+    if (usedNames.size < 11) {
+      const remaining = sortedPlayers.filter(p => !usedNames.has(p.name)).slice(0, 11 - usedNames.size);
+      // This is a simple fallback, in a real scenario we'd be more tactical
+      remaining.forEach(p => {
+        if (defs.length < 4) defs.push(p);
+        else if (mids.length < 3) mids.push(p);
+        else if (fwds.length < 3) fwds.push(p);
+      });
+    }
 
     return { gk, defs, mids, fwds };
   }, [players]);
@@ -42,39 +61,49 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
         <div className="absolute inset-8 md:inset-12 border-2 border-white/10 rounded-xl pointer-events-none">
           <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/10 -translate-y-1/2" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white/10 rounded-full" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 border-2 border-t-0 border-white/10" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-24 border-2 border-b-0 border-white/10" />
+          
+          {/* Penalty Areas */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 border-2 border-t-0 border-white/10" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-32 border-2 border-b-0 border-white/10" />
+          
+          {/* Small Boxes */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-12 border-2 border-t-0 border-white/10" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-12 border-2 border-b-0 border-white/10" />
         </div>
 
-        {/* Players Layout (Simplified 4-3-3) */}
+        {/* Players Layout (4-3-3) */}
         <div className="relative h-full flex flex-col justify-between py-4">
-          {/* Forwards */}
-          <div className="flex justify-around items-center">
+          {/* Forwards (3) */}
+          <div className="flex justify-around items-center px-4">
             {formation?.fwds.map((p, i) => (
               <PlayerSpot key={p.name} player={p} delay={0.1 * i} />
             ))}
           </div>
 
-          {/* Midfielders */}
-          <div className="flex justify-around items-center">
+          {/* Midfielders (3) */}
+          <div className="flex justify-center gap-12 md:gap-24 items-center">
             {formation?.mids.map((p, i) => (
               <PlayerSpot key={p.name} player={p} delay={0.3 + 0.1 * i} />
             ))}
           </div>
 
-          {/* Defenders */}
+          {/* Defenders (4) */}
           <div className="flex justify-around items-center">
             {formation?.defs.map((p, i) => (
               <PlayerSpot key={p.name} player={p} delay={0.6 + 0.1 * i} />
             ))}
           </div>
 
-          {/* Goalkeeper */}
+          {/* Goalkeeper (1) */}
           <div className="flex justify-center items-center">
             {formation?.gk && <PlayerSpot player={formation.gk} delay={0.9} />}
           </div>
         </div>
       </div>
+      
+      <p className="text-center text-white/20 text-xs mt-8 uppercase font-bold tracking-widest">
+        Escalação baseada no desempenho técnico dos últimos jogos
+      </p>
     </section>
   );
 });
@@ -92,14 +121,15 @@ function PlayerSpot({ player, delay }: { player: Player; delay: number }) {
         whileHover={{ y: -5 }}
         className="flex flex-col items-center"
       >
-        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full glass border border-white/20 flex items-center justify-center mb-2 group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all">
-          <span className="text-sm md:text-lg font-black text-white">{getInitials(player.name)}</span>
+        <div className="w-10 h-10 md:w-14 md:h-14 rounded-full glass border border-white/20 flex items-center justify-center mb-2 group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all relative">
+          <span className="text-[10px] md:text-sm font-black text-white">{getInitials(player.name)}</span>
+          {/* Rating Badge */}
+          <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full bg-white text-black flex items-center justify-center text-[8px] md:text-[10px] font-black shadow-xl">
+            {player.avgRating.toFixed(1)}
+          </div>
         </div>
-        <div className="bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 group-hover:border-white/30 transition-all">
-          <p className="text-[10px] md:text-xs font-bold text-white whitespace-nowrap">{player.name}</p>
-        </div>
-        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white text-black flex items-center justify-center text-[10px] font-black shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-          {player.avgRating.toFixed(1)}
+        <div className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/5 group-hover:border-white/20 transition-all">
+          <p className="text-[8px] md:text-[10px] font-bold text-white/90 whitespace-nowrap">{player.name}</p>
         </div>
       </motion.div>
     </motion.div>

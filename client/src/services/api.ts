@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Match, Player, ClubStats, RawMatchData, RawPlayerStats } from "@/types/api";
+import type { Match, Player, ClubStats, RawMatchData } from "@/types/api";
 
 const API_BASE_URL = "https://api.ourproclub.app/api";
 const CLUB_ID = "8044401";
@@ -53,6 +53,7 @@ export const proClubAPI = {
             const goals = parseInt(stats.goals || "0");
             const assists = parseInt(stats.assists || "0");
             const rating = parseFloat(stats.rating || "0");
+            const saves = parseInt(stats.saves || "0");
             const cleanSheets = parseInt(stats.cleansheetsdef || "0") + parseInt(stats.cleansheetsgk || "0");
 
             if (existing) {
@@ -64,6 +65,10 @@ export const proClubAPI = {
               existing.shots += parseInt(stats.shots || "0");
               existing.passes += parseInt(stats.passesmade || "0");
               existing.tackles += parseInt(stats.tacklesmade || "0");
+              // Add saves for GKs
+              if (existing.position.toLowerCase().includes('gk') || existing.position.toLowerCase().includes('goalkeeper')) {
+                (existing as any).saves = ((existing as any).saves || 0) + saves;
+              }
             } else {
               playerMap.set(name, {
                 name,
@@ -75,7 +80,9 @@ export const proClubAPI = {
                 cleanSheets,
                 shots: parseInt(stats.shots || "0"),
                 passes: parseInt(stats.passesmade || "0"),
-                tackles: parseInt(stats.tacklesmade || "0")
+                tackles: parseInt(stats.tacklesmade || "0"),
+                // @ts-ignore - dynamic property for internal calculation
+                saves: saves
               });
             }
           });
@@ -110,7 +117,6 @@ export const proClubAPI = {
 
     let currentStreak = { type: null as "W" | "L" | "D" | null, count: 0 };
     if (matches.length > 0) {
-      // API returns matches from newest to oldest usually, let's assume matches[0] is newest
       const lastResult = matches[0].result;
       let count = 0;
       for (let i = 0; i < matches.length; i++) {
@@ -125,7 +131,6 @@ export const proClubAPI = {
 
     let bestStreak = 0;
     let currentWinStreak = 0;
-    // For best streak we need chronological order (oldest to newest)
     const chronologicalMatches = [...matches].reverse();
     for (const match of chronologicalMatches) {
       if (match.result === "W") {

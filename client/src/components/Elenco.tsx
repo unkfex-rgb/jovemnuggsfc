@@ -1,7 +1,7 @@
 import React, { memo, useState, useMemo } from 'react';
 import { PlayerCard } from './PlayerCard';
 import { getPositionCategory, getPositionLabel } from '../lib/playerUtils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
 import type { Player } from '@/types/api';
@@ -14,9 +14,11 @@ interface ElencoProps {
 export default memo(function Elenco({ players, loading }: ElencoProps) {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
 
-  const positions = useMemo(() => {
-    const uniquePositions = new Set(players.map((p) => getPositionCategory(p.position)));
-    return Array.from(uniquePositions);
+  // Filter out duplicate positions for the buttons and ensure they match our categories
+  const positionCategories = useMemo(() => {
+    const cats = ['goalkeeper', 'defender', 'midfielder', 'forward'];
+    // Only show categories that actually have players
+    return cats.filter(cat => players.some(p => getPositionCategory(p.position) === cat));
   }, [players]);
 
   const filteredPlayers = useMemo(() => {
@@ -58,17 +60,17 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
             >
               Todos
             </button>
-            {positions.map((pos) => (
+            {positionCategories.map((cat) => (
               <button
-                key={pos}
-                onClick={() => setSelectedPosition(pos)}
+                key={cat}
+                onClick={() => setSelectedPosition(cat)}
                 className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
-                  selectedPosition === pos
+                  selectedPosition === cat
                     ? 'bg-white text-black border-white'
                     : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
                 }`}
               >
-                {getPositionLabel(pos)}
+                {getPositionLabel(cat)}
               </button>
             ))}
           </div>
@@ -85,13 +87,15 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
+          key={selectedPosition || 'all'}
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
         >
-          {filteredPlayers.map((player, idx) => (
-            <PlayerCard key={player.name} player={player} />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {filteredPlayers.map((player) => (
+              <PlayerCard key={player.name} player={player} />
+            ))}
+          </AnimatePresence>
         </motion.div>
       )}
 
