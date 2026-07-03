@@ -50,10 +50,10 @@ export default function Home() {
       <Hero />
 
       {/* Estatísticas */}
-      <section id="estatisticas" className="relative py-28 px-6 max-w-7xl mx-auto">
+      <section id="estatisticas" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Números do clube</SectionLabel>
-          <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tighter">ESTATÍSTICAS</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-10 tracking-tighter">ESTATÍSTICAS</h2>
         </Reveal>
 
         {loading && <LoadingState />}
@@ -126,10 +126,10 @@ export default function Home() {
       </section>
 
       {/* Dashboard */}
-      <section id="dashboard" className="relative py-28 px-6 max-w-7xl mx-auto">
+      <section id="dashboard" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Indicadores automáticos</SectionLabel>
-          <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tighter">DASHBOARD</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-10 tracking-tighter">DASHBOARD</h2>
         </Reveal>
 
         {loading && <LoadingState />}

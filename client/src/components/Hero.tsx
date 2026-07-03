@@ -47,7 +47,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
               JOVEM NUGGS <span className="text-white/20">FC</span>
             </h1>
           </motion.div>
@@ -56,7 +56,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-white/40 text-sm md:text-lg tracking-[0.4em] uppercase mb-12 font-bold max-w-2xl mx-auto"
+            className="text-white/40 text-xs sm:text-sm md:text-lg tracking-[0.2em] sm:tracking-[0.4em] uppercase mb-12 font-bold max-w-2xl mx-auto px-4"
           >
             "Ninguém joga sozinho. Respeita a camisa."
           </motion.p>

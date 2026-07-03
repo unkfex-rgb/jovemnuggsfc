@@ -37,12 +37,12 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
   };
 
   return (
-    <section id="elenco" className="relative py-28 px-6 max-w-7xl mx-auto">
+    <section id="elenco" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
       <Reveal>
         <SectionLabel>Elite Squad</SectionLabel>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter">ELENCO</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tighter">ELENCO</h2>
             <p className="text-white/40 mt-2 font-medium">
               {filteredPlayers.length} jogador{filteredPlayers.length !== 1 ? 'es' : ''} no elenco ativo
             </p>

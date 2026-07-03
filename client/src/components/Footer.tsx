@@ -2,23 +2,23 @@ import { Instagram, MessageCircle, Heart } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-white/5 bg-black py-20 overflow-hidden">
+    <footer className="relative border-t border-white/5 bg-black py-12 sm:py-20 overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       
       <div className="container relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 sm:gap-12 mb-12 sm:mb-20">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-6 group cursor-pointer">
-              <div className="w-16 h-16 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
                 <img src="/assets/logo-official.png" alt="JN" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
-                <span className="text-white font-black text-2xl leading-none tracking-tighter uppercase">JOVEM NUGGS</span>
+                <span className="text-white font-black text-xl sm:text-2xl leading-none tracking-tighter uppercase">JOVEM NUGGS</span>
                 <span className="text-xs text-white/40 font-bold tracking-[0.3em] uppercase">Elite Squad</span>
               </div>
             </div>
-            <p className="text-white/40 text-lg font-medium max-w-sm leading-relaxed">
+            <p className="text-white/40 text-base sm:text-lg font-medium max-w-sm leading-relaxed">
               "Ninguém joga sozinho. Respeita a camisa." O portal oficial da organização profissional Jovem Nuggs FC.
             </p>
           </div>

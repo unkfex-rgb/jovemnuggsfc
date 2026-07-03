@@ -30,7 +30,7 @@ export const PlayerCard = memo(({ player }: PlayerCardProps) => {
         <div className="absolute inset-0 p-4 flex flex-col justify-between z-10">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-3xl font-black text-white leading-none tracking-tighter">
+              <span className="text-2xl sm:text-3xl font-black text-white leading-none tracking-tighter">
                 {player.avgRating.toFixed(1)}
               </span>
               <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
@@ -44,12 +44,12 @@ export const PlayerCard = memo(({ player }: PlayerCardProps) => {
 
           <div className="flex flex-col items-center">
             {/* Player Avatar Placeholder / Initials */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-3 sm:mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative">
                <div className="absolute inset-0 bg-white/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-               <span className="text-4xl font-black text-white/80">{getInitials(player.name)}</span>
+               <span className="text-2xl sm:text-4xl font-black text-white/80">{getInitials(player.name)}</span>
             </div>
             
-            <h3 className="text-lg font-bold text-white text-center leading-tight mb-1 group-hover:text-gradient">
+            <h3 className="text-sm sm:text-lg font-bold text-white text-center leading-tight mb-1 group-hover:text-gradient truncate w-full px-2">
               {player.name}
             </h3>
             <div className="flex gap-3 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">

@@ -34,13 +34,13 @@ export default function Navbar() {
       transition={{ duration: 0.8 }}
     >
       <div className="container flex items-center justify-between">
-        <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-12 h-12 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+        <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
             <img src="/assets/logo-official.png" alt="JN" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
           </div>
           <div className="flex flex-col">
-            <span className="text-white font-black text-lg leading-none tracking-tighter">JOVEM NUGGS</span>
-            <span className="text-[10px] text-white/40 font-bold tracking-[0.3em] uppercase">Elite Squad</span>
+            <span className="text-white font-black text-base sm:text-lg leading-none tracking-tighter">JOVEM NUGGS</span>
+            <span className="text-[8px] sm:text-[10px] text-white/40 font-bold tracking-[0.2em] sm:tracking-[0.3em] uppercase">Elite Squad</span>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export default function Navbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="lg:hidden fixed inset-0 top-[73px] bg-black/95 backdrop-blur-2xl z-40 border-t border-white/5"
+            className="lg:hidden fixed inset-0 top-[65px] sm:top-[73px] bg-black/95 backdrop-blur-2xl z-40 border-t border-white/5"
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}
@@ -103,7 +103,7 @@ export default function Navbar() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-3xl font-black text-white/40 hover:text-white transition-all uppercase tracking-tighter"
+                  className="text-2xl sm:text-3xl font-black text-white/40 hover:text-white transition-all uppercase tracking-tighter"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.label}

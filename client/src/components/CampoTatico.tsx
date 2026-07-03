@@ -55,7 +55,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
         <h2 className="text-4xl md:text-6xl font-bold mb-16 tracking-tighter">CAMPO TÁTICO</h2>
       </Reveal>
 
-      <div className="relative aspect-[3/4.5] md:aspect-[4/6] lg:aspect-[16/18] w-full max-w-5xl mx-auto glass-dark rounded-[3rem] border border-white/10 overflow-hidden p-8 md:p-16">
+      <div className="relative aspect-[3/5] sm:aspect-[3/4.5] md:aspect-[4/6] lg:aspect-[16/18] w-full max-w-5xl mx-auto glass-dark rounded-3xl sm:rounded-[3rem] border border-white/10 overflow-hidden p-4 sm:p-8 md:p-16">
         {/* Soccer Field Lines */}
         <div className="absolute inset-8 md:inset-16 border-2 border-white/10 rounded-xl pointer-events-none">
           <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/10 -translate-y-1/2" />
@@ -169,15 +169,15 @@ function PlayerSpot({ player, delay, leaders }: PlayerSpotProps) {
           )}
         </div>
 
-        <div className="w-12 h-12 md:w-20 md:h-20 rounded-full glass border border-white/20 flex items-center justify-center mb-3 group-hover:border-white group-hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all relative">
-          <span className="text-xs md:text-xl font-black text-white">{getInitials(player.name)}</span>
-          <div className="absolute -top-1 -right-1 w-6 h-6 md:w-8 md:h-8 rounded-full bg-white text-black flex items-center justify-center text-[10px] md:text-xs font-black shadow-xl">
+        <div className="w-9 h-9 sm:w-12 sm:h-12 md:w-20 md:h-20 rounded-full glass border border-white/20 flex items-center justify-center mb-2 sm:mb-3 group-hover:border-white group-hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all relative">
+          <span className="text-[10px] sm:text-xs md:text-xl font-black text-white">{getInitials(player.name)}</span>
+          <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-white text-black flex items-center justify-center text-[7px] sm:text-[10px] md:text-xs font-black shadow-xl">
             {player.avgRating.toFixed(1)}
           </div>
         </div>
 
-        <div className="bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 group-hover:border-white/30 transition-all">
-          <p className="text-[10px] md:text-xs font-bold text-white whitespace-nowrap">{player.name}</p>
+        <div className="bg-black/80 backdrop-blur-md px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-white/10 group-hover:border-white/30 transition-all">
+          <p className="text-[7px] sm:text-[10px] md:text-xs font-bold text-white whitespace-nowrap">{player.name}</p>
         </div>
       </motion.div>
     </motion.div>

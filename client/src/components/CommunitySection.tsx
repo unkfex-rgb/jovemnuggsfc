@@ -24,10 +24,10 @@ export function CommunitySection() {
   ];
 
   return (
-    <section id="comunidade" className="relative py-28 px-6 max-w-7xl mx-auto">
+    <section id="comunidade" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
       <Reveal>
         <SectionLabel>Conecte-se com a gente</SectionLabel>
-        <h2 className="text-4xl md:text-6xl font-bold mb-10 tracking-tighter">COMUNIDADE</h2>
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-10 tracking-tighter">COMUNIDADE</h2>
       </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -39,7 +39,7 @@ export function CommunitySection() {
                 href={community.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="glass-dark card-hover rounded-3xl p-10 block group relative overflow-hidden"
+                className="glass-dark card-hover rounded-2xl sm:rounded-3xl p-6 sm:p-10 block group relative overflow-hidden"
                 whileHover={{ y: -10 }}
               >
                 {/* Background Decor */}
@@ -49,19 +49,19 @@ export function CommunitySection() {
 
                 <div className="relative z-10">
                   <div className="flex justify-between items-start mb-8">
-                    <div className={`p-4 rounded-2xl bg-white/5 border border-white/10 ${community.color} transition-colors`}>
-                      <Icon size={32} />
-                    </div>
+<div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 ${community.color} transition-colors`}>
+	                      <Icon size={24} className="sm:w-8 sm:h-8" />
+	                    </div>
                     <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
                       <ArrowUpRight size={20} />
                     </div>
                   </div>
 
-                  <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">
+                  <h3 className="text-xl sm:text-3xl font-bold text-white mb-2 sm:mb-4 tracking-tight">
                     {community.name} Oficial
                   </h3>
                   
-                  <p className="text-white/50 text-base leading-relaxed mb-8 max-w-md">
+                  <p className="text-white/50 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 max-w-md">
                     {community.description}
                   </p>
 

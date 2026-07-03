@@ -23,10 +23,10 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
   };
 
   return (
-    <section id="historico" className="relative py-28 px-6 max-w-7xl mx-auto">
+    <section id="historico" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
       <Reveal>
         <SectionLabel>Linha do tempo</SectionLabel>
-        <h2 className="text-4xl md:text-6xl font-bold mb-16 tracking-tighter">HISTÓRICO</h2>
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-8 sm:mb-16 tracking-tighter">HISTÓRICO</h2>
       </Reveal>
 
       <div className="relative">
@@ -51,7 +51,7 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
                   <div className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white border-4 border-black z-10 hidden md:block" />
 
                   {/* Content Card */}
-                  <div className={`w-full md:w-[calc(50%-2rem)] glass-dark p-8 rounded-3xl border border-white/10 hover:border-white/30 transition-all group`}>
+                  <div className={`w-full md:w-[calc(50%-2rem)] glass-dark p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 hover:border-white/30 transition-all group`}>
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
                         {match.date}
@@ -64,18 +64,18 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <h4 className="text-xs font-bold text-white/40 uppercase mb-1">Jovem Nuggs FC</h4>
-                        <p className="text-xl font-black text-white truncate">JN FC</p>
+                        <p className="text-lg sm:text-xl font-black text-white truncate">JN FC</p>
                       </div>
 
                       <div className="flex flex-col items-center px-4">
-                        <div className="text-3xl font-black text-white tracking-tighter">
-                          {match.teamGoals} <span className="text-white/20 mx-1">-</span> {match.oppGoals}
-                        </div>
+<div className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+	                          {match.teamGoals} <span className="text-white/20 mx-1">-</span> {match.oppGoals}
+	                        </div>
                       </div>
 
                       <div className={`flex-1 ${idx % 2 === 0 ? 'text-right' : 'text-right md:text-left'}`}>
                         <h4 className="text-xs font-bold text-white/40 uppercase mb-1">Adversário</h4>
-                        <p className="text-xl font-black text-white truncate">{match.opponent}</p>
+                        <p className="text-lg sm:text-xl font-black text-white truncate">{match.opponent}</p>
                       </div>
                     </div>
                   </div>
