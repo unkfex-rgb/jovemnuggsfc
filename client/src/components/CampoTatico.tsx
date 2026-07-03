@@ -15,14 +15,26 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
   const formation = useMemo(() => {
     if (players.length === 0) return null;
 
-    // Fixed leaders provided by user with updated names
+    // Dynamic leaders calculated from API data
+    const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0]?.name;
+    const topAssister = [...players].sort((a, b) => b.assists - a.assists)[0]?.name;
+    
+    // Muralha: Best defensive stats (Clean Sheets or Saves if available, otherwise best rating among GK/DEF)
+    const topDefender = [...players]
+      .filter(p => p.position.toLowerCase().includes('gk') || p.position.toLowerCase().includes('def'))
+      .sort((a, b) => {
+        const scoreB = (b.cleanSheets || 0) * 10 + (b.avgRating || 0);
+        const scoreA = (a.cleanSheets || 0) * 10 + (a.avgRating || 0);
+        return scoreB - scoreA;
+      })[0]?.name;
+
     const leaders = {
-      topScorer: 'pedrofeRLK',
-      topAssister: 'corintia4i20',
-      topDefender: 'Dghs100'
+      topScorer,
+      topAssister,
+      topDefender
     };
 
-    // Fixed starters provided by user with updated names
+    // Fixed starters provided by user
     const startersNames = {
       st: ['araujozx77_'],
       ams: ['mxndini-', 'PECINHAA22', 'corintia4i20'],
