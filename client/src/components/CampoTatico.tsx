@@ -25,7 +25,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
     // Fixed starters provided by user with updated names
     const startersNames = {
       st: ['araujozx77_'],
-      ams: ['mxndini', 'PECINHAA22', 'corintia4i20'],
+      ams: ['mxndini-', 'PECINHAA22', 'corintia4i20'],
       cdms: ['Vinim71655', 'pedrofeRLK'],
       defs: ['tavin__07', 'scobyzinn', 'CELTA4656', 'Jessysz0'],
       gk: ['Dghs100']
