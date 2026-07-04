@@ -18,12 +18,22 @@ export const PlayerShareCard = React.memo(({ player, isOpen, onClose }: PlayerSh
     if (!cardRef.current) return;
 
     try {
+      // Aguardar um pouco para garantir que as animações do Framer Motion terminaram
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#000000',
-        scale: 1, // Reduzindo o scale para simplificar a renderização
+        backgroundColor: null,
+        scale: 2,
         useCORS: true,
-        allowTaint: true,
-        logging: true, // Ativando logs para debugar se falhar novamente
+        allowTaint: false,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const element = clonedDoc.getElementById('player-card-to-download');
+          if (element) {
+            element.style.opacity = '1';
+            element.style.transform = 'none';
+          }
+        }
       });
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
@@ -68,6 +78,7 @@ export const PlayerShareCard = React.memo(({ player, isOpen, onClose }: PlayerSh
         {/* Share Card */}
         <div
           ref={cardRef}
+          id="player-card-to-download"
           className={`relative rounded-3xl overflow-hidden border-4 border-white p-8 bg-gradient-to-br ${getPositionColor(player.position)}`}
         >
           {/* Background Pattern */}
