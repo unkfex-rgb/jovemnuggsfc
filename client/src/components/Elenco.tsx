@@ -1,5 +1,6 @@
 import React, { memo, useState, useMemo } from 'react';
 import { PlayerCard } from './PlayerCard';
+import { PlayerProfileModal } from './PlayerProfileModal';
 import { getPositionCategory, getPositionLabel } from '../lib/playerUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
@@ -13,6 +14,7 @@ interface ElencoProps {
 
 export default memo(function Elenco({ players, loading }: ElencoProps) {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   // Filter out duplicate positions for the buttons and ensure they match our categories
   const positionCategories = useMemo(() => {
@@ -93,7 +95,13 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
         >
           <AnimatePresence mode="popLayout">
             {filteredPlayers.map((player) => (
-              <PlayerCard key={player.name} player={player} />
+              <div
+                key={player.name}
+                onClick={() => setSelectedPlayer(player)}
+                className="cursor-pointer"
+              >
+                <PlayerCard player={player} allPlayers={players} />
+              </div>
             ))}
           </AnimatePresence>
         </motion.div>
@@ -104,6 +112,13 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
           <p className="text-white/30 font-medium italic">Nenhum jogador encontrado nesta categoria.</p>
         </div>
       )}
+
+      {/* Player Profile Modal */}
+      <PlayerProfileModal
+        player={selectedPlayer}
+        isOpen={!!selectedPlayer}
+        onClose={() => setSelectedPlayer(null)}
+      />
     </section>
   );
 });

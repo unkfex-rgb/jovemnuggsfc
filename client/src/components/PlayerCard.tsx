@@ -3,14 +3,16 @@ import { getInitials, getPositionLabel, getPositionColor } from '../lib/playerUt
 import { motion } from 'framer-motion';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from './ui/hover-card';
 import { MatchRatingChart } from './MatchRatingChart';
+import { PlayerBadges } from './PlayerBadges';
 import { MatchContext } from '@/contexts/MatchContext';
 import type { Player } from '@/types/api';
 
 interface PlayerCardProps {
   player: Player;
+  allPlayers?: Player[];
 }
 
-export const PlayerCard = memo(({ player }: PlayerCardProps) => {
+export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) => {
   const positionLabel = getPositionLabel(player.position);
   const matches = useContext(MatchContext);
   
@@ -55,9 +57,17 @@ export const PlayerCard = memo(({ player }: PlayerCardProps) => {
                    <span className="text-2xl sm:text-4xl font-black text-white/80">{getInitials(player.name)}</span>
                 </div>
                 
-                <h3 className="text-sm sm:text-lg font-bold text-white text-center leading-tight mb-1 group-hover:text-gradient truncate w-full px-2">
+                <h3 className="text-sm sm:text-lg font-bold text-white text-center leading-tight mb-2 group-hover:text-gradient truncate w-full px-2">
                   {player.name}
                 </h3>
+
+                {/* Badges */}
+                {allPlayers.length > 0 && matches && matches.length > 0 && (
+                  <div className="mb-2">
+                    <PlayerBadges player={player} allPlayers={allPlayers} matches={matches} />
+                  </div>
+                )}
+
                 <div className="flex gap-3 text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
                   <span>{player.matches} J</span>
                   <span>{player.goals} G</span>

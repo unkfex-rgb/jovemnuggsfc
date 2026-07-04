@@ -7,6 +7,7 @@ import Elenco from "@/components/Elenco";
 import MatchHistory from "@/components/MatchHistory";
 import CampoTatico from "@/components/CampoTatico";
 import { DivisionProgressBar } from "@/components/DivisionProgressBar";
+import { MatchDayBanner } from "@/components/MatchDayBanner";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Reveal } from "@/components/Reveal";
 import { StatCard } from "@/components/StatCard";
@@ -70,6 +71,13 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
       <Navbar />
       <Hero />
+
+      {/* Match Day Banner */}
+      {!loading && stats && (
+        <div className="relative py-8 px-4 sm:px-6 max-w-7xl mx-auto">
+          <MatchDayBanner stats={stats} />
+        </div>
+      )}
 
       {/* Estatísticas */}
       <section id="estatisticas" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
