@@ -56,6 +56,7 @@ export const proClubAPI = {
             const assists = parseInt(stats.assists || "0");
             const rating = parseFloat(stats.rating || "0");
             const saves = parseInt(stats.saves || "0");
+            const interceptions = parseInt(stats.interceptions?.toString() || "0");
             const cleanSheets = parseInt(stats.cleansheetsdef || "0") + parseInt(stats.cleansheetsgk || "0");
 
             if (existing) {
@@ -67,10 +68,8 @@ export const proClubAPI = {
               existing.shots += parseInt(stats.shots || "0");
               existing.passes += parseInt(stats.passesmade || "0");
               existing.tackles += parseInt(stats.tacklesmade || "0");
-              // Add saves for GKs
-              if (existing.position.toLowerCase().includes('gk') || existing.position.toLowerCase().includes('goalkeeper')) {
-                (existing as any).saves = ((existing as any).saves || 0) + saves;
-              }
+              existing.interceptions += interceptions;
+              existing.saves += saves;
             } else {
               playerMap.set(name, {
                 name,
@@ -83,8 +82,8 @@ export const proClubAPI = {
                 shots: parseInt(stats.shots || "0"),
                 passes: parseInt(stats.passesmade || "0"),
                 tackles: parseInt(stats.tacklesmade || "0"),
-                // @ts-ignore - dynamic property for internal calculation
-                saves: saves
+                interceptions,
+                saves
               });
             }
           });

@@ -64,6 +64,8 @@ export interface Player {
   shots: number;
   passes: number;
   tackles: number;
+  interceptions: number;
+  saves: number;
 }
 
 export interface ClubStats {
