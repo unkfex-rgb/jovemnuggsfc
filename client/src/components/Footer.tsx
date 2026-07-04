@@ -65,8 +65,17 @@ export default function Footer() {
           <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.4em]">
             Precision & Passion in Esports
           </p>
-          <div className="flex items-center gap-2 text-white/20 text-[10px] font-bold uppercase tracking-[0.4em]">
-            Developed with <Heart size={10} className="text-white/40" /> by Manus
+          <div className="flex items-center gap-2 text-white/20 text-[10px] font-bold uppercase tracking-[0.4em] group">
+            Developed with <Heart size={10} className="text-white/40 group-hover:text-red-500 transition-colors" /> by{" "}
+            <a
+              href="https://www.instagram.com/corintia420/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/20 hover:text-white transition-all relative group/link"
+            >
+              Corintia420
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 rounded opacity-0 group-hover/link:opacity-20 blur-lg transition-opacity" />
+            </a>
           </div>
         </div>
       </div>

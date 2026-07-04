@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Elenco from "@/components/Elenco";
 import MatchHistory from "@/components/MatchHistory";
 import CampoTatico from "@/components/CampoTatico";
+import { DivisionProgressBar } from "@/components/DivisionProgressBar";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Reveal } from "@/components/Reveal";
 import { StatCard } from "@/components/StatCard";
@@ -155,6 +156,40 @@ export default function Home() {
               delay={540}
               trend={goalsTrend}
             />
+          </div>
+        )}
+      </section>
+
+      {/* Divisão e Reputação */}
+      <section className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
+        {!loading && stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Reveal delay={0}>
+              <div className="glass-dark card-hover rounded-2xl p-8 border border-white/10 h-full">
+                <DivisionProgressBar stats={stats} />
+              </div>
+            </Reveal>
+            <Reveal delay={100}>
+              <div className="glass-dark card-hover rounded-2xl p-8 border border-white/10 h-full flex flex-col justify-center">
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Próximo Objetivo</div>
+                    <div className="text-3xl font-black text-white mb-4">Divisão {Math.floor((stats.wins * 3 + stats.draws) / 45) + 2}</div>
+                    <p className="text-white/40 text-sm">Continue vencendo para subir de divisão!</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                    <div className="text-center">
+                      <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Vitórias</div>
+                      <div className="text-2xl font-black text-green-400">{stats.wins}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Derrotas</div>
+                      <div className="text-2xl font-black text-red-400">{stats.losses}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         )}
       </section>

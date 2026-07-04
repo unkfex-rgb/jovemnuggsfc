@@ -1,11 +1,7 @@
 import { motion } from "framer-motion";
 import { ChevronDown, ArrowRight } from "lucide-react";
-import { useProClub } from "@/hooks/useProClub";
-import { DivisionProgressBar } from "./DivisionProgressBar";
 
 export default function Hero() {
-  const { stats, loading } = useProClub();
-
   return (
     <section
       id="home"
@@ -28,85 +24,68 @@ export default function Hero() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
-      <div className="container relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
-          {/* Left: Logo and Title */}
-          <div className="lg:col-span-2 text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, type: "spring" }}
-              className="mb-12 relative inline-block"
-            >
-              <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
-              <div className="relative w-32 h-32 md:w-48 md:h-48 mx-auto lg:mx-0">
-                <img
-                  src="/assets/logo-official.png"
-                  alt="Logo"
-                  className="w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
-                />
-              </div>
-            </motion.div>
-
-            <div className="relative">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-7xl font-black text-white mb-6 tracking-tighter leading-none">
-                  JOVEM NUGGS <span className="text-white/20">FC</span>
-                </h1>
-              </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="text-white/40 text-xs sm:text-sm md:text-lg tracking-[0.2em] sm:tracking-[0.4em] uppercase mb-12 font-bold max-w-2xl px-4 lg:px-0"
-              >
-                "Ninguém joga sozinho. Respeita a camisa."
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="flex flex-col sm:flex-row items-center lg:items-start gap-6"
-              >
-                <button
-                  onClick={() =>
-                    document
-                      .getElementById("estatisticas")
-                      ?.scrollIntoView({ behavior: "smooth" })
-                  }
-                  className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm rounded-xl overflow-hidden transition-all hover:pr-12"
-                >
-                  <span className="relative z-10">Explorar Estatísticas</span>
-                  <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all" size={20} />
-                </button>
-                
-                <a 
-                  href="#elenco"
-                  className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black uppercase tracking-widest text-sm rounded-xl hover:bg-white/10 transition-all"
-                >
-                  Ver Elenco
-                </a>
-              </motion.div>
-            </div>
+      <div className="container relative z-10 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, type: "spring" }}
+          className="mb-12 relative inline-block"
+        >
+          <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
+          <div className="relative w-32 h-32 md:w-48 md:h-48 mx-auto">
+            <img
+              src="/assets/logo-official.png"
+              alt="Logo"
+              className="w-full h-full drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+            />
           </div>
+        </motion.div>
 
-          {/* Right: Division Progress Bar */}
-          {!loading && stats && (
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="lg:col-span-1 glass-dark rounded-3xl p-8 border border-white/10 h-fit"
+        <div className="relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
+              JOVEM NUGGS <span className="text-white/20">FC</span>
+            </h1>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-white/40 text-xs sm:text-sm md:text-lg tracking-[0.2em] sm:tracking-[0.4em] uppercase mb-12 font-bold max-w-2xl mx-auto px-4"
+          >
+            "Ninguém joga sozinho. Respeita a camisa."
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6"
+          >
+            <button
+              onClick={() =>
+                document
+                  .getElementById("estatisticas")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm rounded-xl overflow-hidden transition-all hover:pr-12"
             >
-              <DivisionProgressBar stats={stats} />
-            </motion.div>
-          )}
+              <span className="relative z-10">Explorar Estatísticas</span>
+              <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all" size={20} />
+            </button>
+            
+            <a 
+              href="#elenco"
+              className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black uppercase tracking-widest text-sm rounded-xl hover:bg-white/10 transition-all"
+            >
+              Ver Elenco
+            </a>
+          </motion.div>
         </div>
       </div>
 
