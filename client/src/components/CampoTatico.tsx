@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
-import { getInitials } from '../lib/playerUtils';
+import { getInitials, getPositionCategory, calculatePlayerScore } from '../lib/playerUtils';
 import { Target, Zap, Shield } from 'lucide-react';
 import type { Player } from '@/types/api';
 
@@ -21,7 +21,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
     
     // Muralha: Best defensive stats (Clean Sheets or Saves if available, otherwise best rating among GK/DEF)
     const topDefender = [...players]
-      .filter(p => p.position.toLowerCase().includes('gk') || p.position.toLowerCase().includes('def'))
+      .filter(p => p.position.toLowerCase().includes('gk') || p.position.toLowerCase().includes('def') || p.position === 'GOL' || p.position === 'ZAG' || p.position === 'LAT')
       .sort((a, b) => {
         const scoreB = (b.cleanSheets || 0) * 10 + (b.avgRating || 0);
         const scoreA = (a.cleanSheets || 0) * 10 + (a.avgRating || 0);
@@ -34,28 +34,68 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
       topDefender
     };
 
-    // Fixed starters provided by user - Updated positions
-    const startersNames = {
-      st: ['PECINHAA22'],
-      ams: ['mxndini-', 'pedrofeRLK', 'tavin__07'],
-      cdms: ['Vinim71655', 'corintia4i20'],
-      defs: ['araujozx77_', 'scobyzinn', 'CELTA4656', 'Jessysz0'],
-      gk: ['Dghs100']
+    // Dynamic selection based on position and performance
+    const playersByCategory = {
+      goalkeeper: [] as Player[],
+      defender: [] as Player[],
+      midfielder: [] as Player[],
+      forward: [] as Player[]
     };
 
-    const findByExactName = (name: string) => {
-      return players.find(p => p.name === name) || 
-             players.find(p => p.name.toLowerCase() === name.toLowerCase()) ||
-             { name, position: 'N/A', goals: 0, assists: 0, matches: 0, avgRating: 0, cleanSheets: 0 } as any;
+    // Categorize players
+    players.forEach(player => {
+      const category = getPositionCategory(player.position);
+      playersByCategory[category].push(player);
+    });
+
+    // Sort each category by performance score
+    Object.keys(playersByCategory).forEach(key => {
+      playersByCategory[key as keyof typeof playersByCategory].sort((a, b) => {
+        return calculatePlayerScore(b) - calculatePlayerScore(a);
+      });
+    });
+
+    // Select best players for each position (4-2-3-1 formation)
+    // 1 ST (Striker/Forward)
+    const st = playersByCategory.forward.slice(0, 1);
+    
+    // 3 AMs (Attacking Midfielders - mix of best midfielders and forwards)
+    const ams = [
+      ...playersByCategory.midfielder.slice(0, 2),
+      ...playersByCategory.forward.slice(1, 2)
+    ].slice(0, 3);
+    
+    // 2 CDMs (Central Defensive Midfielders - best midfielders)
+    const cdms = playersByCategory.midfielder.slice(2, 4);
+    
+    // 4 DEFs (Defenders - all defenders available)
+    const defs = playersByCategory.defender.slice(0, 4);
+    
+    // 1 GK (Goalkeeper)
+    const gk = playersByCategory.goalkeeper[0];
+
+    // Ensure we have valid players (fallback to empty objects if not enough players)
+    const ensurePlayer = (player?: Player) => player || {
+      name: 'N/A',
+      position: 'N/A',
+      goals: 0,
+      assists: 0,
+      matches: 0,
+      avgRating: 0,
+      cleanSheets: 0,
+      shots: 0,
+      passes: 0,
+      tackles: 0
     };
 
-    const gk = findByExactName(startersNames.gk[0]);
-    const st = startersNames.st.map(findByExactName);
-    const ams = startersNames.ams.map(findByExactName);
-    const cdms = startersNames.cdms.map(findByExactName);
-    const defs = startersNames.defs.map(findByExactName);
-
-    return { gk, defs, cdms, ams, st, leaders };
+    return {
+      gk: ensurePlayer(gk),
+      defs: defs.map(ensurePlayer),
+      cdms: cdms.map(ensurePlayer),
+      ams: ams.map(ensurePlayer),
+      st: st.map(ensurePlayer),
+      leaders
+    };
   }, [players]);
 
   if (!formation && !loading) return null;
