@@ -8,7 +8,7 @@ import MatchHistory from "@/components/MatchHistory";
 import CampoTatico from "@/components/CampoTatico";
 import { DivisionProgressBar } from "@/components/DivisionProgressBar";
 import { MatchDayBanner } from "@/components/MatchDayBanner";
-import { GoalsGallery } from "@/components/GoalsGallery";
+
 import { HallOfFame } from "@/components/HallOfFame";
 import { SectionLabel } from "@/components/SectionLabel";
 import { Reveal } from "@/components/Reveal";
@@ -286,9 +286,6 @@ export default function Home() {
 
       {/* Histórico */}
       <MatchHistory matches={matches} loading={loading} />
-
-      {/* Gols da Semana */}
-      <GoalsGallery />
 
       {/* Hall da Fama */}
       {!loading && stats && (
