@@ -1,11 +1,9 @@
 import React, { memo, useState, useMemo } from 'react';
 import { PlayerCard } from './PlayerCard';
-import { ProCard } from './ProCard';
 import { getPositionCategory, getPositionLabel } from '../lib/playerUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
-import { Grid3x3, LayoutGrid } from 'lucide-react';
 import type { Player } from '@/types/api';
 
 interface ElencoProps {
@@ -15,7 +13,6 @@ interface ElencoProps {
 
 export default memo(function Elenco({ players, loading }: ElencoProps) {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'cards'>('grid');
 
   // Filter out duplicate positions for the buttons and ensure they match our categories
   const positionCategories = useMemo(() => {
@@ -51,69 +48,37 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
             </p>
           </div>
 
-          {/* View Mode Toggle and Position Filter */}
-          <div className="flex flex-col gap-4">
-            {/* View Mode Toggle */}
-            <div className="flex gap-2">
+          {/* Position Filter */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedPosition(null)}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                selectedPosition === null
+                  ? 'bg-white text-black border-white'
+                  : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
+              }`}
+            >
+              Todos
+            </button>
+            {positionCategories.map((cat) => (
               <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg border transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
-                }`}
-                title="Visualização em Grade"
-              >
-                <LayoutGrid size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`p-2 rounded-lg border transition-all ${
-                  viewMode === 'cards'
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
-                }`}
-                title="Visualização em Pro Cards"
-              >
-                <Grid3x3 size={18} />
-              </button>
-            </div>
-            {/* Position Filter */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedPosition(null)}
+                key={cat}
+                onClick={() => setSelectedPosition(cat)}
                 className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
-                  selectedPosition === null
+                  selectedPosition === cat
                     ? 'bg-white text-black border-white'
                     : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
                 }`}
               >
-                Todos
+                {getPositionLabel(cat)}
               </button>
-              {positionCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedPosition(cat)}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
-                    selectedPosition === cat
-                      ? 'bg-white text-black border-white'
-                      : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
-                  }`}
-                >
-                  {getPositionLabel(cat)}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </Reveal>
 
       {loading ? (
-        <div className={`grid gap-6 ${
-          viewMode === 'grid'
-            ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-        }`}>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse" />
           ))}
@@ -124,19 +89,11 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
           initial="hidden"
           animate="visible"
           key={selectedPosition || 'all'}
-          className={`grid gap-6 ${
-            viewMode === 'grid'
-              ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
-              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-          }`}
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
         >
           <AnimatePresence mode="popLayout">
             {filteredPlayers.map((player) => (
-              viewMode === 'grid' ? (
-                <PlayerCard key={player.name} player={player} />
-              ) : (
-                <ProCard key={player.name} player={player} />
-              )
+              <PlayerCard key={player.name} player={player} />
             ))}
           </AnimatePresence>
         </motion.div>
