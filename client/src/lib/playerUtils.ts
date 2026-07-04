@@ -31,7 +31,9 @@ export function getPositionCategory(position: string): 'goalkeeper' | 'defender'
   if (pos.includes('defender') || pos === 'def' || pos === 'defesa' || pos.includes('back')) return 'defender';
   if (pos.includes('midfielder') || pos === 'mid' || pos === 'meio') return 'midfielder';
   if (pos.includes('forward') || pos === 'att' || pos === 'atacante' || pos.includes('striker')) return 'forward';
-  return 'midfielder';
+  // Se a posição já for uma das categorias detectadas, retorna ela mesma
+  if (['goalkeeper', 'defender', 'midfielder', 'forward'].includes(pos)) return pos as 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+  return 'midfielder'; // Fallback padrão
 }
 
 export function detectPositionByAttributes(player: Player): string {
