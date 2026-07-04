@@ -1,4 +1,5 @@
 import { useProClub } from "@/hooks/useProClub";
+import { MatchContextProvider } from "@/contexts/MatchContext";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Footer from "@/components/Footer";
@@ -198,7 +199,9 @@ export default function Home() {
       </section>
 
       {/* Elenco */}
-      <Elenco players={players} loading={loading} />
+      <MatchContextProvider matches={matches}>
+        <Elenco players={players} loading={loading} />
+      </MatchContextProvider>
 
       {/* Formação */}
       <CampoTatico players={players} loading={loading} />
