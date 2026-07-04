@@ -20,10 +20,10 @@ export const PlayerShareCard = React.memo(({ player, isOpen, onClose }: PlayerSh
     try {
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#000000',
-        scale: 2,
+        scale: 1, // Reduzindo o scale para simplificar a renderização
         useCORS: true,
         allowTaint: true,
-        logging: false,
+        logging: true, // Ativando logs para debugar se falhar novamente
       });
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
@@ -71,7 +71,7 @@ export const PlayerShareCard = React.memo(({ player, isOpen, onClose }: PlayerSh
           className={`relative rounded-3xl overflow-hidden border-4 border-white p-8 bg-gradient-to-br ${getPositionColor(player.position)}`}
         >
           {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 opacity-10" data-html2canvas-ignore="true">
             <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full blur-3xl" />
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-white rounded-full blur-3xl" />
           </div>
