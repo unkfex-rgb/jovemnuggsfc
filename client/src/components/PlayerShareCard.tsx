@@ -21,13 +21,19 @@ export const PlayerShareCard = React.memo(({ player, isOpen, onClose }: PlayerSh
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#000000',
         scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
       });
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
       link.download = `${player.name.replace(/\s+/g, '_')}_JN_Card.png`;
+      document.body.appendChild(link);
       link.click();
+      setTimeout(() => document.body.removeChild(link), 100);
     } catch (error) {
       console.error('Erro ao gerar imagem:', error);
+      alert('Erro ao gerar a imagem. Tente novamente.');
     }
   };
 
