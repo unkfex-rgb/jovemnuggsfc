@@ -11,16 +11,13 @@ export const PlayerCard = memo(({ player }: PlayerCardProps) => {
   const positionLabel = getPositionLabel(player.position);
   
   return (
-    <motion.a
-      href={`https://proclubstracker.com/club/8044401?platform=common-gen5`}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       variants={{
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0 }
       }}
       whileHover={{ y: -10 }}
-      className="group relative block"
+      className="group relative"
     >
       {/* Card Background with Glassmorphism */}
       <div className="relative aspect-[3/4.5] bg-black border border-white/10 group-hover:border-white/30 rounded-2xl overflow-hidden transition-all duration-500">
@@ -81,7 +78,7 @@ export const PlayerCard = memo(({ player }: PlayerCardProps) => {
 
       {/* Glow Effect on Hover */}
       <div className="absolute -inset-0.5 bg-white opacity-0 group-hover:opacity-10 blur-xl transition-opacity rounded-2xl -z-10" />
-    </motion.a>
+    </motion.div>
   );
 });
 

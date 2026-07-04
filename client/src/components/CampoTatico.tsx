@@ -192,15 +192,12 @@ function PlayerSpot({ player, delay, leaders }: PlayerSpotProps) {
   const isTopDefender = player.name.toLowerCase() === leaders.topDefender?.toLowerCase();
 
   return (
-    <motion.a
-      href={`https://proclubstracker.com/club/8044401?platform=common-gen5`}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
       initial={{ opacity: 0, scale: 0 }}
       whileInView={{ opacity: 1, scale: 1 }}
       transition={{ delay, type: 'spring', stiffness: 200 }}
       viewport={{ once: true }}
-      className="relative group cursor-pointer block"
+      className="relative group cursor-pointer"
     >
       <motion.div 
         whileHover={{ y: -5 }}
@@ -235,6 +232,6 @@ function PlayerSpot({ player, delay, leaders }: PlayerSpotProps) {
           <p className="text-[7px] sm:text-[10px] md:text-xs font-bold text-white whitespace-nowrap">{player.name}</p>
         </div>
       </motion.div>
-    </motion.a>
+    </motion.div>
   );
 }
