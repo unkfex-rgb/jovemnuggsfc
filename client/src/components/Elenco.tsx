@@ -118,6 +118,7 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
         player={selectedPlayer}
         isOpen={!!selectedPlayer}
         onClose={() => setSelectedPlayer(null)}
+        allPlayers={players}
       />
     </section>
   );
