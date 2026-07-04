@@ -45,6 +45,26 @@ export default function Home() {
     ? [...players].sort((a, b) => b.avgRating - a.avgRating)[0]
     : null;
 
+  // Calcular tendências baseado nas últimas partidas
+  const getRecentTrend = (getValue: (m: any) => number) => {
+    if (matches.length < 2) return "stable";
+    const recent = matches.slice(-5);
+    const older = matches.slice(-10, -5);
+    const recentAvg = recent.reduce((sum, m) => sum + getValue(m), 0) / Math.max(recent.length, 1);
+    const olderAvg = older.reduce((sum, m) => sum + getValue(m), 0) / Math.max(older.length, 1);
+    if (recentAvg > olderAvg) return "up";
+    if (recentAvg < olderAvg) return "down";
+    return "stable";
+  };
+
+  const getSparkData = (getValue: (m: any) => number) => {
+    return matches.slice(-10).map(m => getValue(m));
+  };
+
+  const winTrend = getRecentTrend((m) => m.result === "W" ? 1 : 0);
+  const goalsTrend = getRecentTrend((m) => m.teamGoals);
+  const concededTrend = getRecentTrend((m) => m.oppGoals);
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
       <Navbar />
@@ -67,60 +87,73 @@ export default function Home() {
               label="Jogos"
               value={stats.total}
               delay={0}
+              trend="stable"
             />
             <StatCard
               icon={Trophy}
               label="Vitórias"
               value={stats.wins}
               delay={60}
+              trend={winTrend}
+              sparkData={getSparkData((m) => m.result === "W" ? 1 : 0)}
             />
             <StatCard
               icon={Minus}
               label="Empates"
               value={stats.draws}
               delay={120}
+              trend="stable"
             />
             <StatCard
               icon={TrendingDown}
               label="Derrotas"
               value={stats.losses}
               delay={180}
+              trend={winTrend === "up" ? "down" : winTrend === "down" ? "up" : "stable"}
             />
             <StatCard
               icon={Gauge}
               label="Aproveitamento"
               value={`${stats.aproveitamento}%`}
               delay={240}
+              trend={winTrend}
             />
             <StatCard
               icon={Target}
               label="Gols Pró"
               value={stats.gf}
               delay={300}
+              trend={goalsTrend}
+              sparkData={getSparkData((m) => m.teamGoals)}
             />
             <StatCard
               icon={Crosshair}
               label="Gols Contra"
               value={stats.ga}
               delay={360}
+              trend={concededTrend === "up" ? "down" : concededTrend === "down" ? "up" : "stable"}
+              sparkData={getSparkData((m) => m.oppGoals)}
             />
             <StatCard
               icon={TrendingUp}
               label="Saldo"
               value={stats.saldo}
               delay={420}
+              trend={goalsTrend}
             />
             <StatCard
               icon={ShieldCheck}
               label="Clean Sheets"
               value={stats.cleanSheets}
               delay={480}
+              trend="stable"
             />
             <StatCard
               icon={BarChart3}
               label="Média de Gols"
               value={stats.mediaGols.toFixed(2)}
               delay={540}
+              trend={goalsTrend}
             />
           </div>
         )}
