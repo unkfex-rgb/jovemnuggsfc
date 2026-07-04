@@ -63,13 +63,7 @@ export const PlayerProfileModal = React.memo(({ player, isOpen, onClose, allPlay
                 </button>
 
                 <div className="flex items-center gap-6">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center border-2 border-white/20 overflow-hidden relative">
-                    <img 
-                      src={`/assets/players/${player.name.toLowerCase().replace(/\s+/g, '-')}.png`}
-                      alt={player.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center border-2 border-white/20">
                     <span className="text-4xl font-black text-white/80">
                       {player.name.slice(0, 2).toUpperCase()}
                     </span>

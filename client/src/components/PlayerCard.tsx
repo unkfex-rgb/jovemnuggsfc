@@ -51,14 +51,8 @@ export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) =>
               </div>
 
               <div className="flex flex-col items-center">
-                {/* Player Avatar Placeholder / Pro Card Image or Initials */}
-                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-3 sm:mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative overflow-hidden">
-                   <img 
-                     src={`/assets/players/${player.name.toLowerCase().replace(/\s+/g, '-')}.png`}
-                     alt={player.name}
-                     className="w-full h-full object-cover"
-                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                   />
+                {/* Player Avatar Placeholder / Initials */}
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-3 sm:mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative" loading="lazy">
                    <div className="absolute inset-0 bg-white/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                    <span className="text-2xl sm:text-4xl font-black text-white/80">{getInitials(player.name)}</span>
                 </div>
