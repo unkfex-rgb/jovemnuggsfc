@@ -71,7 +71,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
-      <Navbar />
+      <header><Navbar /></header>
+      <main>
       <Hero />
 
       {/* Match Day Banner */}
@@ -295,6 +296,7 @@ export default function Home() {
       {/* Comunidade */}
       <CommunitySection />
 
+      </main>
       <Footer />
     </div>
   );

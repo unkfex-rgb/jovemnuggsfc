@@ -37,8 +37,7 @@ export function CommunitySection() {
             <Reveal key={community.name} delay={i * 100}>
               <motion.a
                 href={community.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
                 className="glass-dark card-hover rounded-2xl sm:rounded-3xl p-6 sm:p-10 block group relative overflow-hidden"
                 whileHover={{ y: -10 }}
               >

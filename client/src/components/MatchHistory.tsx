@@ -104,8 +104,9 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
             <motion.button
               key={filter}
               onClick={() => setFilterResult(filter)}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(255,255,255,0.2)' }}
               whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className={`px-4 py-2 rounded-lg font-bold uppercase text-xs tracking-widest transition-all border ${
                 filterResult === filter
                   ? filter === 'W'

@@ -12,8 +12,10 @@ const apiClient = axios.create({
 export const proClubAPI = {
   async getMatchHistory(): Promise<{ matches: Match[]; players: Player[] }> {
     try {
-      const response = await apiClient.get<RawMatchData[]>(`/match/history?clubId=${CLUB_ID}`);
-      const rawData = response.data;
+      const response = await apiClient.get<ArrayBuffer>(`/match/history?clubId=${CLUB_ID}`, { responseType: 'arraybuffer' });
+      const decodedData = new TextDecoder('utf-8').decode(response.data);
+      const rawData: RawMatchData[] = JSON.parse(decodedData);
+
 
       if (!Array.isArray(rawData)) {
         console.error("API response is not an array:", rawData);

@@ -29,8 +29,7 @@ export default memo(function Contact() {
             >
               <a
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
                 className="group relative overflow-hidden"
               >
                 <div className="relative bg-black border-2 border-cyan-400 p-4 hover:border-cyan-300 transition-all duration-300 flex items-center justify-center" style={{

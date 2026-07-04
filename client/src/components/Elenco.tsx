@@ -52,8 +52,10 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
 
           {/* Position Filter */}
           <div className="flex flex-wrap gap-2">
-            <button
+            <motion.button
               onClick={() => setSelectedPosition(null)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
                 selectedPosition === null
                   ? 'bg-white text-black border-white'
@@ -61,19 +63,21 @@ export default memo(function Elenco({ players, loading }: ElencoProps) {
               }`}
             >
               Todos
-            </button>
+            </motion.button>
             {positionCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedPosition(cat)}
-                className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
-                  selectedPosition === cat
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
-                }`}
-              >
+            <motion.button
+              key={cat}
+              onClick={() => setSelectedPosition(cat)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                selectedPosition === cat
+                  ? 'bg-white text-black border-white'
+                  : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
+              }`}
+            >
                 {getPositionLabel(cat)}
-              </button>
+            </motion.button>
             ))}
           </div>
         </div>

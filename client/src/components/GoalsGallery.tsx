@@ -164,8 +164,7 @@ export const GoalsGallery = React.memo(({ media = [] }: GoalsGalleryProps) => {
                       <span className="text-xs text-white/40 font-bold uppercase">{selectedMedia.date}</span>
                       <a
                         href={selectedMedia.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target="_blank" rel="noopener noreferrer"
                         className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/20 transition-colors"
                       >
                         Ver Original

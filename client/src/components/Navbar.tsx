@@ -63,14 +63,14 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <a 
               href="https://discord.gg/kz5esRFec" 
-              target="_blank" 
+              target="_blank" rel="noopener noreferrer" 
               className="p-2 text-white/40 hover:text-white transition-colors"
             >
               <MessageCircle size={18} />
             </a>
             <a 
               href="https://www.instagram.com/jovemnuggs.ofc/" 
-              target="_blank" 
+              target="_blank" rel="noopener noreferrer" 
               className="p-2 text-white/40 hover:text-white transition-colors"
             >
               <Instagram size={18} />
@@ -111,10 +111,10 @@ export default function Navbar() {
               ))}
               
               <div className="mt-8 pt-8 border-t border-white/10 flex gap-6">
-                 <a href="https://discord.gg/kz5esRFec" target="_blank" className="flex items-center gap-2 text-white font-bold">
+                 <a href="https://discord.gg/kz5esRFec" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white font-bold">
                     <MessageCircle size={24} /> Discord
                  </a>
-                 <a href="https://www.instagram.com/jovemnuggs.ofc/" target="_blank" className="flex items-center gap-2 text-white font-bold">
+                 <a href="https://www.instagram.com/jovemnuggs.ofc/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white font-bold">
                     <Instagram size={24} /> Instagram
                  </a>
               </div>
