@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { proClubAPI } from "@/services/api";
 import type { Match, Player, ClubStats } from "@/types/api";
-import { detectPositionByAttributes } from "@/lib/playerUtils";
+
 
 interface UseProClubReturn {
   matches: Match[];
@@ -33,11 +33,7 @@ export function useProClub(): UseProClubReturn {
         }
 
         if (data.players) {
-          const playersWithDetectedPositions = data.players.map(player => ({
-            ...player,
-            position: detectPositionByAttributes(player) // Atualiza a posição com base nos atributos
-          }));
-          setPlayers(playersWithDetectedPositions);
+          setPlayers(data.players);
         }
       } catch (err) {
         setError(
