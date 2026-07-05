@@ -2,6 +2,7 @@ import React, { memo, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLabel } from './SectionLabel';
 import { Reveal } from './Reveal';
+import { MatchStatsPopup } from './MatchStatsPopup';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Filter } from 'lucide-react';
 import type { Match } from '@/types/api';
@@ -174,11 +175,14 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
                           <p className="text-lg sm:text-xl font-black text-white truncate">JN FC</p>
                         </div>
 
-                        <div className="flex flex-col items-center px-4">
-                          <div className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
-                            {match.teamGoals} <span className="text-white/20 mx-1">-</span> {match.oppGoals}
+                        <MatchStatsPopup match={match}>
+                          <div className="flex flex-col items-center px-4 cursor-pointer hover:scale-105 transition-transform">
+                            <div className="text-2xl sm:text-3xl font-black text-white tracking-tighter hover:text-emerald-400 transition-colors">
+                              {match.teamGoals} <span className="text-white/20 mx-1">-</span> {match.oppGoals}
+                            </div>
+                            <p className="text-[10px] text-white/30 mt-1 font-bold">Ver Stats</p>
                           </div>
-                        </div>
+                        </MatchStatsPopup>
 
                         <div className={`flex-1 ${idx % 2 === 0 ? 'text-right' : 'text-right md:text-left'}`}>
                           <h4 className="text-xs font-bold text-white/40 uppercase mb-1">Adversário</h4>
