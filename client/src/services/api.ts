@@ -122,21 +122,23 @@ export const proClubAPI = {
       }
 
       return data.map((m: any) => {
-        const ourGoals = parseInt(m.goals) || 0;
-        const oppGoals = parseInt(m.goalsAgainst) || 0;
+        const ourGoals = parseInt(m.clubs?.[CLUB_ID]?.goals) || parseInt(m.goals) || 0;
+        const opponentClub = Object.values(m.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
+        const oppGoals = parseInt(opponentClub?.goals) || parseInt(m.goalsAgainst) || 0;
+        
         let result: "W" | "L" | "D" = "D";
         if (ourGoals > oppGoals) result = "W";
         else if (ourGoals < oppGoals) result = "L";
 
         return {
-          id: m.matchId,
-          timestamp: m.timestamp,
-          date: m.timeAgo || "Recente",
-          opponent: m.opponentName || "Desconhecido",
+          id: m.matchId || m.match_data?.matchId,
+          timestamp: m.timestamp || m.match_data?.timestamp,
+          date: m.timeAgo || m.match_data?.timeAgo || "Recente",
+          opponent: opponentClub?.clubName || m.opponentName || "Desconhecido",
           teamGoals: ourGoals,
           oppGoals: oppGoals,
           result,
-          playerStats: m.playerStats || {}
+          playerStats: m.player_data || m.playerStats || {}
         };
       });
     } catch (error) {
