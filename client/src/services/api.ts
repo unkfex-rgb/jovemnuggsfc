@@ -112,6 +112,39 @@ export const proClubAPI = {
     }
   },
 
+  async getTrackerMatches(): Promise<Match[]> {
+    try {
+      const response = await axios.get(`${TRACKER_API_URL}/clubs/${CLUB_ID}/matches?platform=${PLATFORM}`);
+      const data = response.data;
+      
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      return data.map((m: any) => {
+        const ourGoals = parseInt(m.goals) || 0;
+        const oppGoals = parseInt(m.goalsAgainst) || 0;
+        let result: "W" | "L" | "D" = "D";
+        if (ourGoals > oppGoals) result = "W";
+        else if (ourGoals < oppGoals) result = "L";
+
+        return {
+          id: m.matchId,
+          timestamp: m.timestamp,
+          date: m.timeAgo || "Recente",
+          opponent: m.opponentName || "Desconhecido",
+          teamGoals: ourGoals,
+          oppGoals: oppGoals,
+          result,
+          playerStats: m.playerStats || {}
+        };
+      });
+    } catch (error) {
+      console.error("Erro ao buscar partidas do Tracker:", error);
+      return [];
+    }
+  },
+
   async getTrackerPerformance(): Promise<Map<string, { rating: number; goals: number; assists: number; mom: number }>> {
     try {
       const response = await axios.get(`${TRACKER_API_URL}/clubs/${CLUB_ID}?platform=${PLATFORM}`);

@@ -23,12 +23,18 @@ export function useProClub(): UseProClubReturn {
       try {
         setError(null);
 
-        // Buscar dados da API principal
-        const data = await proClubAPI.getMatchHistory();
+        // Buscar dados da API principal e do Tracker em paralelo
+        const [data, trackerMatches] = await Promise.all([
+          proClubAPI.getMatchHistory(),
+          proClubAPI.getTrackerMatches()
+        ]);
 
-        if (data.matches) {
-          setMatches(data.matches);
-          const calculatedStats = await proClubAPI.getClubStats(data.matches);
+        // Priorizar partidas do Tracker se disponíveis, senão usar API principal
+        const finalMatches = trackerMatches.length > 0 ? trackerMatches : data.matches;
+
+        if (finalMatches) {
+          setMatches(finalMatches);
+          const calculatedStats = await proClubAPI.getClubStats(finalMatches);
           setStats(calculatedStats);
         }
 
