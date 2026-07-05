@@ -21,7 +21,6 @@ export function useProClub(): UseProClubReturn {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
         setError(null);
 
         const data = await proClubAPI.getMatchHistory();
@@ -45,7 +44,17 @@ export function useProClub(): UseProClubReturn {
       }
     };
 
+    // Carregar dados na primeira vez
+    setLoading(true);
     fetchData();
+
+    // Configurar polling automático a cada 2 minutos (120000ms)
+    const pollInterval = setInterval(() => {
+      fetchData();
+    }, 120000);
+
+    // Limpar o intervalo quando o componente desmontar
+    return () => clearInterval(pollInterval);
   }, []);
 
   return { matches, players, stats, loading, error };

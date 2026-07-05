@@ -43,7 +43,7 @@ export const MatchStatsPopup = ({ match, children }: MatchStatsPopupProps) => {
         {children}
       </HoverCardTrigger>
 
-      <HoverCardContent className="w-80 bg-black/95 backdrop-blur-md border border-white/20 p-4" align="center" sideOffset={10}>
+      <HoverCardContent className="w-72 sm:w-80 bg-black/95 backdrop-blur-md border border-white/20 p-3 sm:p-4" align="center" sideOffset={10}>
         <div className="space-y-4">
           {/* Header */}
           <div className="border-b border-white/10 pb-3">
@@ -65,7 +65,7 @@ export const MatchStatsPopup = ({ match, children }: MatchStatsPopupProps) => {
           </div>
 
           {/* Top Players */}
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-64 overflow-y-auto">
             <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Top Performers</p>
             {sortedPlayers.map(({ name, stats }, idx) => {
               const isMOM = stats.mom === '1';
@@ -76,25 +76,25 @@ export const MatchStatsPopup = ({ match, children }: MatchStatsPopupProps) => {
               return (
                 <div
                   key={name}
-                  className={`flex items-center justify-between p-2 rounded-lg text-xs transition-all ${
+                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 rounded-lg text-xs transition-all gap-2 ${
                     isMOM
                       ? 'bg-yellow-500/20 border border-yellow-500/30'
                       : 'bg-white/5 border border-white/10'
                   }`}
                 >
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-white/40 w-4">{idx + 1}.</span>
-                      <div>
-                        <p className="font-bold text-white truncate">{name}</p>
+                      <span className="text-white/40 flex-shrink-0 w-4">{idx + 1}.</span>
+                      <div className="min-w-0">
+                        <p className="font-bold text-white truncate text-sm">{name}</p>
                         <p className="text-white/40 text-[10px]">{getPositionLabel(stats.pos)}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {goals > 0 && <span className="text-red-400 font-bold">{goals}G</span>}
-                    {assists > 0 && <span className="text-blue-400 font-bold">{assists}A</span>}
-                    <span className={`font-bold w-10 text-right ${
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    {goals > 0 && <span className="text-red-400 font-bold text-xs">{goals}G</span>}
+                    {assists > 0 && <span className="text-blue-400 font-bold text-xs">{assists}A</span>}
+                    <span className={`font-bold w-8 sm:w-10 text-right text-xs ${
                       rating >= 8 ? 'text-emerald-400' :
                       rating >= 7 ? 'text-yellow-400' :
                       'text-white/60'
