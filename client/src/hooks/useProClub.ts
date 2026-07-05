@@ -23,6 +23,7 @@ export function useProClub(): UseProClubReturn {
       try {
         setError(null);
 
+        // Buscar dados da API principal
         const data = await proClubAPI.getMatchHistory();
 
         if (data.matches) {
@@ -32,7 +33,26 @@ export function useProClub(): UseProClubReturn {
         }
 
         if (data.players) {
-          setPlayers(data.players);
+          // Buscar dados de performance do Tracker para atualizar em tempo real
+          const trackerPerformance = await proClubAPI.getTrackerPerformance();
+          
+          // Mesclar dados: usar Tracker para notas e stats, manter resto da API
+          const enhancedPlayers = data.players.map(player => {
+            const trackerData = trackerPerformance.get(player.name);
+            
+            if (trackerData) {
+              return {
+                ...player,
+                avgRating: trackerData.rating,
+                goals: trackerData.goals,
+                assists: trackerData.assists
+              };
+            }
+            
+            return player;
+          });
+
+          setPlayers(enhancedPlayers.sort((a, b) => b.avgRating - a.avgRating));
         }
       } catch (err) {
         setError(

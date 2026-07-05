@@ -2,12 +2,26 @@ import axios from "axios";
 import type { Match, Player, ClubStats, RawMatchData } from "@/types/api";
 
 const API_BASE_URL = "https://api.ourproclub.app/api";
+const TRACKER_API_URL = "https://proclubstracker.com/api";
 const CLUB_ID = "8044401";
+const PLATFORM = "common-gen5";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
 });
+
+interface TrackerMemberStats {
+  name: string;
+  proName: string;
+  proPos: string;
+  ratingAve: string;
+  goals: string;
+  assists: string;
+  manOfTheMatch: string;
+  favoritePosition: string;
+  [key: string]: any;
+}
 
 export const proClubAPI = {
   async getMatchHistory(): Promise<{ matches: Match[]; players: Player[] }> {
@@ -15,7 +29,6 @@ export const proClubAPI = {
       const response = await apiClient.get<ArrayBuffer>(`/match/history?clubId=${CLUB_ID}`, { responseType: 'arraybuffer' });
       const decodedData = new TextDecoder('utf-8').decode(response.data);
       const rawData: RawMatchData[] = JSON.parse(decodedData);
-
 
       if (!Array.isArray(rawData)) {
         console.error("API response is not an array:", rawData);
@@ -67,7 +80,6 @@ export const proClubAPI = {
               existing.shots += parseInt(stats.shots || "0");
               existing.passes += parseInt(stats.passesmade || "0");
               existing.tackles += parseInt(stats.tacklesmade || "0");
-              // Add saves for GKs
               if (existing.position.toLowerCase().includes('gk') || existing.position.toLowerCase().includes('goalkeeper')) {
                 (existing as any).saves = ((existing as any).saves || 0) + saves;
               }
@@ -83,7 +95,6 @@ export const proClubAPI = {
                 shots: parseInt(stats.shots || "0"),
                 passes: parseInt(stats.passesmade || "0"),
                 tackles: parseInt(stats.tacklesmade || "0"),
-                // @ts-ignore - dynamic property for internal calculation
                 saves: saves
               });
             }
@@ -98,6 +109,34 @@ export const proClubAPI = {
     } catch (error) {
       console.error("Erro ao buscar histórico de partidas:", error);
       return { matches: [], players: [] };
+    }
+  },
+
+  async getTrackerPerformance(): Promise<Map<string, { rating: number; goals: number; assists: number; mom: number }>> {
+    try {
+      const response = await axios.get(`${TRACKER_API_URL}/clubs/${CLUB_ID}?platform=${PLATFORM}`);
+      const data = response.data;
+      
+      if (!data.memberStats || !Array.isArray(data.memberStats.members)) {
+        console.warn("Tracker: memberStats não encontrado");
+        return new Map();
+      }
+
+      const performanceMap = new Map<string, { rating: number; goals: number; assists: number; mom: number }>();
+      
+      data.memberStats.members.forEach((member: TrackerMemberStats) => {
+        performanceMap.set(member.name, {
+          rating: parseFloat(member.ratingAve) || 0,
+          goals: parseInt(member.goals) || 0,
+          assists: parseInt(member.assists) || 0,
+          mom: parseInt(member.manOfTheMatch) || 0
+        });
+      });
+
+      return performanceMap;
+    } catch (error) {
+      console.error("Erro ao buscar performance do Tracker:", error);
+      return new Map();
     }
   },
 
