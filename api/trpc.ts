@@ -139,7 +139,7 @@ const appRouter = router({
             result: match.result === "win" ? "W" : (match.result === "loss" ? "L" : "D"),
             teamGoals: match.homeGoals,
             oppGoals: match.awayGoals,
-            date: match.timestamp ? new Date(match.timestamp * 1000).toISOString().split(\'T\')[0] : \'\',
+            date: match.timestamp ? new Date(match.timestamp * 1000).toISOString().split('T')[0] : '',
             opponent: match.awayClubName,
           }));
         }
