@@ -268,7 +268,7 @@ export default function Home() {
             />
             <DashboardCard
               title="Melhor Sequência"
-              name={`${overallStats.promotions}x`}
+              name={`${overallStats?.relegations || 0}x`}
               sub="promoções"
               icon={Trophy}
               delay={250}
