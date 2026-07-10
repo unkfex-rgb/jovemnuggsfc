@@ -1,15 +1,12 @@
-import axios from "axios";
+import { trpc } from "@/lib/trpc";
 import type { Match, Player, ClubStats, RawMatchData } from "@/types/api";
 
-const API_BASE_URL = "https://api.ourproclub.app/api";
-const TRACKER_API_URL = "https://proclubstracker.com/api";
+
+
 const CLUB_ID = "8044401";
 const PLATFORM = "common-gen5";
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 15000,
-});
+
 
 interface TrackerMemberStats {
   name: string;
@@ -26,18 +23,21 @@ interface TrackerMemberStats {
 export const proClubAPI = {
   async getMatchHistory(): Promise<{ matches: Match[]; players: Player[] }> {
     try {
-      const response = await apiClient.get<ArrayBuffer>(`/match/history?clubId=${CLUB_ID}`, { responseType: 'arraybuffer' });
-      const decodedData = new TextDecoder('utf-8').decode(response.data);
-      const rawData: RawMatchData[] = JSON.parse(decodedData);
+      const [leagueMatches, playoffMatches, memberStats] = await Promise.all([
+        trpc.club.leagueMatches.query(),
+        trpc.club.playoffMatches.query(),
+        trpc.club.memberStats.query()
+      ]);
 
-      if (!Array.isArray(rawData)) {
-        console.error("API response is not an array:", rawData);
-        return { matches: [], players: [] };
-      }
+      const rawMatches = [...(leagueMatches || []), ...(playoffMatches || [])]
+        .sort((a, b) => b.timestamp - a.timestamp);
 
-      const matches: Match[] = rawData.map((m) => {
-        const ourClub = m.match_data.clubs[CLUB_ID];
-        const opponentClub = Object.values(m.match_data.clubs).find(c => c.clubId !== CLUB_ID);
+      const matches: Match[] = rawMatches.map((m: any) => {
+        const ourClubId = Object.keys(m.clubs).find(id => id === CLUB_ID);
+        const oppClubId = Object.keys(m.clubs).find(id => id !== CLUB_ID);
+        
+        const ourClub = ourClubId ? m.clubs[ourClubId] : null;
+        const opponentClub = oppClubId ? m.clubs[oppClubId] : null;
         
         const ourGoals = parseInt(ourClub?.goals || "0");
         const oppGoals = parseInt(opponentClub?.goals || "0");
@@ -46,190 +46,135 @@ export const proClubAPI = {
         if (ourGoals > oppGoals) result = "W";
         else if (ourGoals < oppGoals) result = "L";
 
+        // A API da EA não retorna playerStats detalhados por partida neste endpoint
+        // Precisaremos adaptar o MatchStatsPopup ou buscar de outra forma se necessário
         return {
-          id: m.match_data.matchId,
-          timestamp: m.match_data.timestamp,
-          date: m.match_data.timeAgo,
-          opponent: opponentClub?.clubName || "Desconhecido",
+          id: m.matchId,
+          timestamp: m.timestamp,
+          date: new Date(m.timestamp * 1000).toLocaleDateString('pt-BR'),
+          opponent: opponentClub?.details?.name || "Desconhecido",
           teamGoals: ourGoals,
           oppGoals: oppGoals,
           result,
-          playerStats: m.player_data
+          playerStats: {} // Temporariamente vazio, a API da EA não fornece isso facilmente por partida
         };
       });
 
-      // Process Players
-      const playerMap = new Map<string, Player>();
-
-      rawData.forEach((m) => {
-        if (m.player_data) {
-          Object.entries(m.player_data).forEach(([name, stats]) => {
-            const existing = playerMap.get(name);
-            const goals = parseInt(stats.goals || "0");
-            const assists = parseInt(stats.assists || "0");
-            const rating = parseFloat(stats.rating || "0");
-            const saves = parseInt(stats.saves || "0");
-            const cleanSheets = parseInt(stats.cleansheetsdef || "0") + parseInt(stats.cleansheetsgk || "0");
-
-            if (existing) {
-              existing.goals += goals;
-              existing.assists += assists;
-              existing.matches += 1;
-              existing.avgRating = (existing.avgRating * (existing.matches - 1) + rating) / existing.matches;
-              existing.cleanSheets += cleanSheets;
-              existing.shots += parseInt(stats.shots || "0");
-              existing.passes += parseInt(stats.passesmade || "0");
-              existing.tackles += parseInt(stats.tacklesmade || "0");
-              if (existing.position.toLowerCase().includes('gk') || existing.position.toLowerCase().includes('goalkeeper')) {
-                (existing as any).saves = ((existing as any).saves || 0) + saves;
-              }
-            } else {
-              playerMap.set(name, {
-                name,
-                position: stats.pos,
-                goals,
-                assists,
-                matches: 1,
-                avgRating: rating,
-                cleanSheets,
-                shots: parseInt(stats.shots || "0"),
-                passes: parseInt(stats.passesmade || "0"),
-                tackles: parseInt(stats.tacklesmade || "0"),
-                saves: saves
-              });
-            }
+      // Process Players from memberStats
+      const players: Player[] = [];
+      if (memberStats && memberStats.members) {
+        memberStats.members.forEach((member: any) => {
+          players.push({
+            name: member.name,
+            position: member.favoritePosition || "Desconhecido",
+            goals: parseInt(member.goals || "0"),
+            assists: parseInt(member.assists || "0"),
+            matches: parseInt(member.gamesPlayed || "0"),
+            avgRating: parseFloat(member.ratingAve || "0"),
+            cleanSheets: parseInt(member.cleanSheetsDef || "0") + parseInt(member.cleanSheetsGK || "0"),
+            shots: parseInt(member.shots || "0"),
+            passes: parseInt(member.passesMade || "0"),
+            tackles: parseInt(member.tacklesMade || "0"),
+            saves: parseInt(member.saves || "0")
           });
-        }
-      });
+        });
+      }
 
       return { 
         matches, 
-        players: Array.from(playerMap.values()).sort((a, b) => b.avgRating - a.avgRating) 
+        players: players.sort((a, b) => b.avgRating - a.avgRating) 
       };
     } catch (error) {
-      console.error("Erro ao buscar histórico de partidas:", error);
+      console.error("Erro ao buscar histórico de partidas da EA:", error);
       return { matches: [], players: [] };
     }
   },
 
-  async getTrackerMatches(): Promise<Match[]> {
-    try {
-      const response = await axios.get(`${TRACKER_API_URL}/clubs/${CLUB_ID}/matches?platform=${PLATFORM}`);
-      const data = response.data;
+
+
+
+
+
+  async getClubStats(): Promise<ClubStats> {
+    const [clubInfo, overallStats, leagueMatches, playoffMatches] = await Promise.all([
+      trpc.club.clubInfo.query(),
+      trpc.club.overallStats.query(),
+      trpc.club.leagueMatches.query(),
+      trpc.club.playoffMatches.query(),
+    ]);
+
+    const stats: ClubStats = {
+      total: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      gf: 0,
+      ga: 0,
+      saldo: 0,
+      aproveitamento: 0,
+      cleanSheets: 0,
+      mediaGols: 0,
+      currentStreak: { type: "", count: 0 },
+      bestStreak: 0,
+      division: parseInt(clubInfo?.[0]?.divisionTitle) || 0,
+      skillRating: parseInt(clubInfo?.[0]?.skillRating) || 0,
+    };
+
+    const allMatches = [...leagueMatches, ...playoffMatches];
+    stats.total = allMatches.length;
+
+    if (!allMatches.length) return stats;
+
+    stats.wins = parseInt(overallStats?.[0]?.wins) || 0;
+    stats.draws = parseInt(overallStats?.[0]?.draws) || 0;
+    stats.losses = parseInt(overallStats?.[0]?.losses) || 0;
+    stats.gf = parseInt(overallStats?.[0]?.goals) || 0;
+    stats.ga = parseInt(overallStats?.[0]?.goalsAgainst) || 0;
+    stats.saldo = stats.gf - stats.ga;
+    stats.aproveitamento = parseFloat(((stats.wins / stats.total) * 100).toFixed(2));
+    stats.mediaGols = stats.gf / stats.total;
+
+    // Clean Sheets (precisa ser calculado a partir dos matches)
+    stats.cleanSheets = allMatches.filter(match => {
+      const ourClub = match.clubs.find((c: any) => c.clubId === CLUB_ID);
+      return ourClub && parseInt(ourClub.goalsAgainst) === 0;
+    }).length;
+
+    // Calcular sequências (ainda precisa ser feito a partir dos matches)
+    let currentWinStreak = 0;
+    let currentLossStreak = 0;
+    let currentDrawStreak = 0;
+    let bestStreak = 0;
+
+    // Para calcular a streak, precisamos ordenar as partidas por data (mais recente primeiro)
+    const sortedMatches = [...allMatches].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    if (sortedMatches.length > 0) {
+      const lastMatchResult = sortedMatches[0].clubs.find((c: any) => c.clubId === CLUB_ID)?.result;
       
-      if (!Array.isArray(data)) {
-        return [];
-      }
+      for (const match of sortedMatches) {
+        const ourClub = match.clubs.find((c: any) => c.clubId === CLUB_ID);
+        if (!ourClub) continue;
 
-      return data.map((m: any) => {
-        const ourGoals = parseInt(m.clubs?.[CLUB_ID]?.goals) || parseInt(m.goals) || 0;
-        const opponentClub = Object.values(m.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
-        const oppGoals = parseInt(opponentClub?.goals) || parseInt(m.goalsAgainst) || 0;
-        
-        let result: "W" | "L" | "D" = "D";
-        if (ourGoals > oppGoals) result = "W";
-        else if (ourGoals < oppGoals) result = "L";
+        const result = ourClub.result;
 
-        return {
-          id: m.matchId || m.match_data?.matchId,
-          timestamp: m.timestamp || m.match_data?.timestamp,
-          date: m.timeAgo || m.match_data?.timeAgo || "Recente",
-          opponent: opponentClub?.clubName || m.opponentName || "Desconhecido",
-          teamGoals: ourGoals,
-          oppGoals: oppGoals,
-          result,
-          playerStats: m.player_data || m.playerStats || {}
-        };
-      });
-    } catch (error) {
-      console.error("Erro ao buscar partidas do Tracker:", error);
-      return [];
-    }
-  },
-
-  async getTrackerPerformance(): Promise<Map<string, { rating: number; goals: number; assists: number; mom: number }>> {
-    try {
-      const response = await axios.get(`${TRACKER_API_URL}/clubs/${CLUB_ID}?platform=${PLATFORM}`);
-      const data = response.data;
-      
-      if (!data.memberStats || !Array.isArray(data.memberStats.members)) {
-        console.warn("Tracker: memberStats não encontrado");
-        return new Map();
-      }
-
-      const performanceMap = new Map<string, { rating: number; goals: number; assists: number; mom: number }>();
-      
-      data.memberStats.members.forEach((member: TrackerMemberStats) => {
-        performanceMap.set(member.name, {
-          rating: parseFloat(member.ratingAve) || 0,
-          goals: parseInt(member.goals) || 0,
-          assists: parseInt(member.assists) || 0,
-          mom: parseInt(member.manOfTheMatch) || 0
-        });
-      });
-
-      return performanceMap;
-    } catch (error) {
-      console.error("Erro ao buscar performance do Tracker:", error);
-      return new Map();
-    }
-  },
-
-  async getClubStats(matches: Match[]): Promise<ClubStats> {
-    const total = matches.length;
-    const wins = matches.filter((m) => m.result === "W").length;
-    const losses = matches.filter((m) => m.result === "L").length;
-    const draws = matches.filter((m) => m.result === "D").length;
-
-    const gf = matches.reduce((sum, m) => sum + m.teamGoals, 0);
-    const ga = matches.reduce((sum, m) => sum + m.oppGoals, 0);
-    const saldo = gf - ga;
-
-    const points = wins * 3 + draws * 1;
-    const aproveitamento = total > 0 ? (points / (total * 3)) * 100 : 0;
-
-    const cleanSheets = matches.filter((m) => m.oppGoals === 0).length;
-    const mediaGols = total > 0 ? gf / total : 0;
-
-    let currentStreak = { type: null as "W" | "L" | "D" | null, count: 0 };
-    if (matches.length > 0) {
-      const lastResult = matches[0].result;
-      let count = 0;
-      for (let i = 0; i < matches.length; i++) {
-        if (matches[i].result === lastResult) {
-          count++;
+        if (result === lastMatchResult) {
+          if (result === "win") currentWinStreak++;
+          else if (result === "draw") currentDrawStreak++;
+          else if (result === "loss") currentLossStreak++;
         } else {
-          break;
+          break; // A sequência foi quebrada
         }
       }
-      currentStreak = { type: lastResult, count };
+
+      if (lastMatchResult === "win") stats.currentStreak = { type: "W", count: currentWinStreak };
+      else if (lastMatchResult === "draw") stats.currentStreak = { type: "D", count: currentDrawStreak };
+      else if (lastMatchResult === "loss") stats.currentStreak = { type: "L", count: currentLossStreak };
     }
 
-    let bestStreak = 0;
-    let currentWinStreak = 0;
-    const chronologicalMatches = [...matches].reverse();
-    for (const match of chronologicalMatches) {
-      if (match.result === "W") {
-        currentWinStreak++;
-        bestStreak = Math.max(bestStreak, currentWinStreak);
-      } else {
-        currentWinStreak = 0;
-      }
-    }
+    // Melhor sequência (precisa de uma lógica mais complexa, por enquanto deixamos 0)
+    stats.bestStreak = 0; // Será implementado em uma próxima etapa
 
-    return {
-      total,
-      wins,
-      losses,
-      draws,
-      gf,
-      ga,
-      saldo,
-      aproveitamento: Math.round(aproveitamento * 10) / 10,
-      cleanSheets,
-      mediaGols: Math.round(mediaGols * 100) / 100,
-      currentStreak,
-      bestStreak,
-    };
+    return stats;
   },
 };
