@@ -34,6 +34,7 @@ export interface Member {
   goals: number;
   assists: number;
   rating: number;
+  position: string; // Adicionado
 }
 
 export interface Match {
@@ -43,7 +44,11 @@ export interface Match {
   awayClubName: string;
   homeGoals: number;
   awayGoals: number;
-  result: string; // "win", "loss", "draw"
+  result: 'W' | 'L' | 'D'; // Ajustado para 'W', 'L', 'D'
+  teamGoals: number; // Adicionado
+  oppGoals: number; // Adicionado
+  date: string; // Adicionado
+  opponent: string; // Adicionado
 }
 
 export interface AggregatedClubData {

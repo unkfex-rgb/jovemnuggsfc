@@ -118,6 +118,7 @@ const appRouter = router({
             player.goals = parseInt($(element).find("td").eq(2).text()) || 0;
             player.assists = parseInt($(element).find("td").eq(3).text()) || 0;
             player.rating = parseFloat($(element).find("td").eq(4).text()) || 0;
+            player.position = $(element).find("td").eq(5).text().trim(); // Assumindo que a posição está na 6ª coluna (índice 5)
             if (player.name) memberStats.push(player);
           });
         }
@@ -136,7 +137,11 @@ const appRouter = router({
             awayClubName: match.awayClubName || "Oponente",
             homeGoals: parseInt(match.homeGoals) || 0,
             awayGoals: parseInt(match.awayGoals) || 0,
-            result: match.result || (match.homeGoals > match.awayGoals ? "win" : "loss"),
+            result: match.result === "win" ? "W" : (match.result === "loss" ? "L" : "D"),
+            teamGoals: match.homeGoals,
+            oppGoals: match.awayGoals,
+            date: new Date(match.timestamp * 1000).toISOString().split('T')[0],
+            opponent: match.awayClubName,
           }));
         }
       } catch (error) {

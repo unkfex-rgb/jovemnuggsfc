@@ -1,7 +1,7 @@
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../../../server/routers";
 import superjson from "superjson";
-import type { Match, Member, ClubInfo, OverallStats } from "@/types/api";
+import type { Match, Member, ClubInfo, OverallStats, AggregatedClubData } from "@/types/api";
 
 const CLUB_ID = "8044401";
 
@@ -15,7 +15,7 @@ const trpc = createTRPCProxyClient<AppRouter>({
 });
 
 export const proClubAPI = {
-  async getAllData(): Promise<{ matches: Match[]; players: Member[]; stats: { clubInfo: ClubInfo; overallStats: OverallStats } }> {
+  async getAllData(): Promise<AggregatedClubData> {
     try {
       const data = await trpc.club.getData.query();
       
@@ -33,6 +33,10 @@ export const proClubAPI = {
             homeGoals: m.homeGoals,
             awayGoals: m.awayGoals,
             result: m.result,
+            teamGoals: m.teamGoals,
+            oppGoals: m.oppGoals,
+            date: m.date,
+            opponent: m.opponent,
           };
         });
 
@@ -44,6 +48,7 @@ export const proClubAPI = {
           goals: member.goals,
           assists: member.assists,
           rating: member.rating,
+          position: member.position, // Adicionado
         };
       }).sort((a: any, b: any) => b.rating - a.rating);
 
@@ -53,7 +58,7 @@ export const proClubAPI = {
         overallStats: overallStats as OverallStats,
       };
 
-      return { matches, players, stats };
+      return { matches, memberStats: players, clubInfo: stats.clubInfo, overallStats: stats.overallStats, timestamp: data.timestamp };
     } catch (error) {
       console.error("Erro ao agregar dados do clube:", error);
       throw error;
