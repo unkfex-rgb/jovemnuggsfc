@@ -9,7 +9,7 @@ const trpc = createTRPCProxyClient<AppRouter>({
   transformer: superjson,
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: typeof window !== "undefined" ? `${window.location.origin}/api/trpc` : "/api/trpc",
     }),
   ],
 });
