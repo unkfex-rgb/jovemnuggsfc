@@ -7,12 +7,6 @@ import { PlayerBadges } from './PlayerBadges';
 import { MatchContext } from '@/contexts/MatchContext';
 import type { Player } from '@/types/api';
 
-const getPlayerTierClass = (rating: number) => {
-  if (rating >= 80) return "bg-gradient-to-br from-yellow-500 to-yellow-700"; // Gold
-  if (rating >= 70) return "bg-gradient-to-br from-gray-400 to-gray-600";   // Silver
-  return "bg-gradient-to-br from-amber-700 to-amber-900";                 // Bronze
-};
-
 interface PlayerCardProps {
   player: Player;
   allPlayers?: Player[];
@@ -34,7 +28,7 @@ export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) =>
           className="group relative cursor-pointer"
         >
           {/* Card Background with Glassmorphism */}
-          <div className={`relative aspect-[3/4.5] bg-black border border-white/10 group-hover:border-white/30 rounded-2xl overflow-hidden transition-all duration-500 ${getPlayerTierClass(player.avgRating)}`}>
+          <div className="relative aspect-[3/4.5] bg-black border border-white/10 group-hover:border-white/30 rounded-2xl overflow-hidden transition-all duration-500">
             {/* Animated Gradient Background */}
             <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity">
               <div className={`absolute inset-0 bg-gradient-to-b ${getPositionColor(player.position)}`} />

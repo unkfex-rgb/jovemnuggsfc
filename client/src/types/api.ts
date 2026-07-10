@@ -2,59 +2,90 @@
  * Tipos para a API do Pro Club
  */
 
-export interface ClubInfo {
-  clubName: string;
-  division: string;
-  skillRating: number;
-  wins: number;
-  draws: number;
-  losses: number;
+export interface RawMatchData {
+  match_data: {
+    matchId: string;
+    timestamp: number;
+    timeAgo: string;
+    clubs: Record<string, {
+      clubId: string;
+      clubName: string;
+      goals: string;
+      wins: string;
+      losses: string;
+      ties: string;
+      result: string;
+    }>;
+  };
+  player_data: Record<string, RawPlayerStats>;
 }
 
-export interface OverallStats {
-  gamesPlayed: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  winRate: number;
-  goals: number;
-  conceded: number;
-  goalDiff: number;
-  goalsPerGame: number;
-  concededPerGame: number;
-  cleanSheets: number;
-  currentStreak: string;
-  promotions: number;
-  relegations: number;
-}
-
-export interface Member {
-  name: string;
-  games: number;
-  goals: number;
-  assists: number;
-  rating: number;
-  position: string; // Adicionado
+export interface RawPlayerStats {
+  mom: string;
+  pos: string;
+  goals: string;
+  saves: string;
+  shots: string;
+  rating: string;
+  assists: string;
+  dribbles: number;
+  redcards: string;
+  passesmade: string;
+  archetypeid: string;
+  tacklesmade: string;
+  passattempts: string;
+  cleansheetsgk: string;
+  interceptions: number;
+  secondAssists: number;
+  secondsPlayed: string;
+  cleansheetsdef: string;
+  tackleattempts: string;
 }
 
 export interface Match {
-  matchId: string;
+  id: string;
   timestamp: number;
-  homeClubName: string;
-  awayClubName: string;
-  homeGoals: number;
-  awayGoals: number;
-  result: 'W' | 'L' | 'D'; // Ajustado para 'W', 'L', 'D'
-  teamGoals: number; // Adicionado
-  oppGoals: number; // Adicionado
-  date: string; // Adicionado
-  opponent: string; // Adicionado
+  date: string;
+  opponent: string;
+  teamGoals: number;
+  oppGoals: number;
+  result: "W" | "L" | "D";
+  playerStats: Record<string, RawPlayerStats>;
 }
 
-export interface AggregatedClubData {
-  clubInfo: ClubInfo;
-  overallStats: OverallStats;
-  memberStats: Member[];
+export interface Player {
+  name: string;
+  position: string;
+  goals: number;
+  assists: number;
+  matches: number;
+  avgRating: number;
+  cleanSheets: number;
+  shots: number;
+  passes: number;
+  tackles: number;
+}
+
+export interface ClubStats {
+  total: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  gf: number;
+  ga: number;
+  saldo: number;
+  aproveitamento: number;
+  cleanSheets: number;
+  mediaGols: number;
+  currentStreak: {
+    type: "W" | "L" | "D" | null;
+    count: number;
+  };
+  bestStreak: number;
+}
+
+export interface ProClubResponse {
   matches: Match[];
-  timestamp: number;
+  players: Player[];
+  stats: ClubStats;
 }

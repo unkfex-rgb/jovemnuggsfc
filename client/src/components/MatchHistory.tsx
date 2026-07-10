@@ -15,8 +15,6 @@ interface MatchHistoryProps {
 export default memo(function MatchHistory({ matches, loading }: MatchHistoryProps) {
   const [filterResult, setFilterResult] = useState<'all' | 'W' | 'L' | 'D'>('all');
 
-  const safeMatches = matches || [];
-
   const getResultColor = (result: string) => {
     if (result === 'W') return 'text-emerald-400 border-emerald-400/20 bg-emerald-400/5';
     if (result === 'L') return 'text-rose-400 border-rose-400/20 bg-rose-400/5';
@@ -31,14 +29,14 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
 
   // Filtrar partidas
   const filteredMatches = useMemo(() => {
-    if (filterResult === 'all') return safeMatches;
-    return safeMatches.filter(m => m.result === filterResult);
+    if (filterResult === 'all') return matches;
+    return matches.filter(m => m.result === filterResult);
   }, [matches, filterResult]);
 
   // Dados para o gráfico de saldo
   const chartData = useMemo(() => {
     let cumulativeSaldo = 0;
-    return safeMatches.slice(-10).map((match, idx) => {
+    return matches.slice(-10).map((match, idx) => {
       const saldo = match.teamGoals - match.oppGoals;
       cumulativeSaldo += saldo;
       return {
@@ -58,7 +56,7 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
       </Reveal>
 
       {/* Gráfico de Saldo das Últimas 10 Partidas */}
-      {!loading && safeMatches.length > 0 && (
+      {!loading && matches.length > 0 && (
         <Reveal delay={50}>
           <div className="mb-16 glass-dark rounded-3xl p-6 sm:p-8 border border-white/10">
             <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-6">Evolução de Saldo (Últimas 10 Partidas)</h3>
@@ -125,7 +123,7 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
               {filter === 'all' ? 'Todos' : filter === 'W' ? 'Vitórias' : filter === 'L' ? 'Derrotas' : 'Empates'}
               {filter !== 'all' && (
                 <span className="ml-2 text-[10px]">
-                  ({safeMatches.filter(m => m.result === filter).length})
+                  ({matches.filter(m => m.result === filter).length})
                 </span>
               )}
             </motion.button>

@@ -39,7 +39,7 @@ export default function Navbar() {
             <img src="/assets/logo-official.png" alt="JN" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
           </div>
           <div className="flex flex-col">
-            <span className="ea-fc-text-gradient font-black text-base sm:text-lg leading-none tracking-tighter">JOVEM NUGGS</span>
+            <span className="text-white font-black text-base sm:text-lg leading-none tracking-tighter">JOVEM NUGGS</span>
             <span className="text-[8px] sm:text-[10px] text-white/40 font-bold tracking-[0.2em] sm:tracking-[0.3em] uppercase">Elite Squad</span>
           </div>
         </div>

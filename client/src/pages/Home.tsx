@@ -34,11 +34,7 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { matches = [], players = [], stats, loading, error } = useProClub();
-
-  // Ajustar o acesso às propriedades de stats
-  const clubInfo = stats?.clubInfo;
-  const overallStats = stats?.overallStats;
+  const { matches, players, stats, loading, error } = useProClub();
 
   const topScorer = players.length
     ? [...players].sort((a, b) => b.goals - a.goals)[0]
@@ -47,10 +43,10 @@ export default function Home() {
     ? [...players].sort((a, b) => b.assists - a.assists)[0]
     : null;
   const mostParticipative = players.length
-    ? [...players].sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists))[0]
+    ? [...players].sort((a, b) => b.goals + b.assists - (a.goals + a.assists))[0]
     : null;
   const bestAvg = players.length
-    ? [...players].sort((a, b) => b.rating - a.rating)[0]
+    ? [...players].sort((a, b) => b.avgRating - a.avgRating)[0]
     : null;
 
   // Calcular tendências baseado nas últimas partidas
@@ -70,8 +66,8 @@ export default function Home() {
   };
 
   const winTrend = getRecentTrend((m) => m.result === "W" ? 1 : 0);
-  const goalsTrend = getRecentTrend((m) => m.homeGoals);
-  const concededTrend = getRecentTrend((m) => m.awayGoals);
+  const goalsTrend = getRecentTrend((m) => m.teamGoals);
+  const concededTrend = getRecentTrend((m) => m.oppGoals);
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-white selection:text-black">
@@ -80,10 +76,9 @@ export default function Home() {
       <Hero />
 
       {/* Match Day Banner */}
-      {!loading && overallStats && (
+      {!loading && stats && (
         <div className="relative py-8 px-4 sm:px-6 max-w-7xl mx-auto">
-          {/* Ajustar props para MatchDayBanner se necessário */}
-          <MatchDayBanner stats={overallStats || {}} />
+          <MatchDayBanner stats={stats} />
         </div>
       )}
 
@@ -97,19 +92,19 @@ export default function Home() {
         {loading && <LoadingState />}
         {error && <ErrorState message={error} />}
 
-        {overallStats && (
+        {stats && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             <StatCard
               icon={Activity}
               label="Jogos"
-              value={overallStats?.gamesPlayed || 0}
+              value={stats.total}
               delay={0}
               trend="stable"
             />
             <StatCard
               icon={Trophy}
               label="Vitórias"
-              value={overallStats?.wins || 0}
+              value={stats.wins}
               delay={60}
               trend={winTrend}
               sparkData={getSparkData((m) => m.result === "W" ? 1 : 0)}
@@ -117,58 +112,58 @@ export default function Home() {
             <StatCard
               icon={Minus}
               label="Empates"
-              value={overallStats?.draws || 0}
+              value={stats.draws}
               delay={120}
               trend="stable"
             />
             <StatCard
               icon={TrendingDown}
               label="Derrotas"
-              value={overallStats?.losses || 0}
+              value={stats.losses}
               delay={180}
               trend={winTrend === "up" ? "down" : winTrend === "down" ? "up" : "stable"}
             />
             <StatCard
               icon={Gauge}
               label="Aproveitamento"
-              value={`${((overallStats?.wins / overallStats?.gamesPlayed) * 100 || 0).toFixed(2)}%`}
+              value={`${stats.aproveitamento}%`}
               delay={240}
               trend={winTrend}
             />
             <StatCard
               icon={Target}
               label="Gols Pró"
-              value={overallStats?.goals || 0}
+              value={stats.gf}
               delay={300}
               trend={goalsTrend}
-              sparkData={getSparkData((m) => m.homeGoals)}
+              sparkData={getSparkData((m) => m.teamGoals)}
             />
             <StatCard
               icon={Crosshair}
               label="Gols Contra"
-              value={overallStats?.conceded || 0}
+              value={stats.ga}
               delay={360}
               trend={concededTrend === "up" ? "down" : concededTrend === "down" ? "up" : "stable"}
-              sparkData={getSparkData((m) => m.awayGoals)}
+              sparkData={getSparkData((m) => m.oppGoals)}
             />
             <StatCard
               icon={TrendingUp}
               label="Saldo"
-              value={overallStats?.goalDiff || 0}
+              value={stats.saldo}
               delay={420}
               trend={goalsTrend}
             />
             <StatCard
               icon={ShieldCheck}
               label="Clean Sheets"
-              value={overallStats?.cleanSheets || 0}
+              value={stats.cleanSheets}
               delay={480}
               trend="stable"
             />
             <StatCard
               icon={BarChart3}
               label="Média de Gols"
-              value={(overallStats?.goalsPerGame || 0).toFixed(2)}
+              value={stats.mediaGols.toFixed(2)}
               delay={540}
               trend={goalsTrend}
             />
@@ -178,12 +173,11 @@ export default function Home() {
 
       {/* Divisão e Reputação */}
       <section className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
-        {!loading && clubInfo && overallStats && (
+        {!loading && stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Reveal delay={0}>
               <div className="glass-dark card-hover rounded-2xl p-8 border border-white/10 h-full">
-                {/* Ajustar props para DivisionProgressBar se necessário */}
-                <DivisionProgressBar stats={{ division: clubInfo?.division || "", skillRating: clubInfo?.skillRating || 0, wins: overallStats?.wins || 0, draws: overallStats?.draws || 0 }} />
+                <DivisionProgressBar stats={stats} />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -191,17 +185,17 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Próximo Objetivo</div>
-                    <div className="text-3xl font-black text-white mb-4">Divisão {parseInt(clubInfo?.division || "0") + 1}</div>
+                    <div className="text-3xl font-black text-white mb-4">Divisão {Math.floor((stats.wins * 3 + stats.draws) / 45) + 2}</div>
                     <p className="text-white/40 text-sm">Continue vencendo para subir de divisão!</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
                     <div className="text-center">
                       <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Vitórias</div>
-                      <div className="text-2xl font-black text-green-400">{overallStats?.wins || 0}</div>
+                      <div className="text-2xl font-black text-green-400">{stats.wins}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Derrotas</div>
-                      <div className="text-2xl font-black text-red-400">{overallStats?.losses || 0}</div>
+                      <div className="text-2xl font-black text-red-400">{stats.losses}</div>
                     </div>
                   </div>
                 </div>
@@ -221,7 +215,7 @@ export default function Home() {
         {loading && <LoadingState />}
         {error && <ErrorState message={error} />}
 
-        {overallStats && players.length > 0 && (
+        {stats && players.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <DashboardCard
               title="Maior Goleador"
@@ -251,15 +245,21 @@ export default function Home() {
             <DashboardCard
               title="Melhor Média"
               name={bestAvg?.name || "-"}
-              sub={bestAvg ? bestAvg.rating.toFixed(2) : "-"}
+              sub={bestAvg ? bestAvg.avgRating.toFixed(2) : "-"}
               icon={Star}
               delay={150}
             />
             <DashboardCard
               title="Forma Atual"
               name={
-                overallStats?.currentStreak
-                  ? `${overallStats.currentStreak}`
+                stats.currentStreak.type
+                  ? `${stats.currentStreak.count}x ${
+                      stats.currentStreak.type === "W"
+                        ? "Vitória"
+                        : stats.currentStreak.type === "L"
+                          ? "Derrota"
+                          : "Empate"
+                    }`
                   : "-"
               }
               sub="Sequência recente"
@@ -268,8 +268,8 @@ export default function Home() {
             />
             <DashboardCard
               title="Melhor Sequência"
-              name={`${overallStats?.relegations || 0}x`}
-              sub="promoções"
+              name={`${stats.bestStreak}x`}
+              sub="vitórias seguidas"
               icon={Trophy}
               delay={250}
             />
@@ -289,8 +289,8 @@ export default function Home() {
       <MatchHistory matches={matches} loading={loading} />
 
       {/* Hall da Fama */}
-      {!loading && overallStats && (
-        <HallOfFame players={players} stats={overallStats} matches={matches} />
+      {!loading && stats && (
+        <HallOfFame players={players} stats={stats} matches={matches} />
       )}
 
       {/* Comunidade */}

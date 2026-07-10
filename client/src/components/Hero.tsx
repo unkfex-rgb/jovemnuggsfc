@@ -13,7 +13,7 @@ export default function Hero() {
           initial={{ scale: 1.2, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.4 }}
           transition={{ duration: 2, ease: "easeOut" }}
-          src="/manus-storage/ea-fc-hero-bg.webp"
+          src="/manus-storage/hero-bg_62eb721f.png"
           alt="Background"
           className="w-full h-full object-cover blur-[2px]"
         />
@@ -48,7 +48,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
-              JOVEM NUGGS <span className="ea-fc-text-gradient">FC</span>
+              JOVEM NUGGS <span className="text-white/20">FC</span>
             </h1>
           </motion.div>
 
@@ -73,7 +73,7 @@ export default function Hero() {
                   .getElementById("estatisticas")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
-              className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm rounded-xl overflow-hidden transition-all hover:pr-12 btn-primary"
+              className="group relative px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-sm rounded-xl overflow-hidden transition-all hover:pr-12"
             >
               <span className="relative z-10">Explorar Estatísticas</span>
               <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all" size={20} />
@@ -81,7 +81,7 @@ export default function Hero() {
             
             <a 
               href="#elenco"
-              className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black uppercase tracking-widest text-sm rounded-xl hover:bg-white/10 transition-all btn-secondary"
+              className="px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black uppercase tracking-widest text-sm rounded-xl hover:bg-white/10 transition-all"
             >
               Ver Elenco
             </a>
