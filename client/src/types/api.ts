@@ -64,6 +64,7 @@ export interface Player {
   shots: number;
   passes: number;
   tackles: number;
+  saves: number;
 }
 
 export interface ClubStats {
@@ -78,10 +79,12 @@ export interface ClubStats {
   cleanSheets: number;
   mediaGols: number;
   currentStreak: {
-    type: "W" | "L" | "D" | null;
+    type: "W" | "L" | "D" | string;
     count: number;
   };
   bestStreak: number;
+  division: number;
+  skillRating: number;
 }
 
 export interface ProClubResponse {

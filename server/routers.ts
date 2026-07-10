@@ -13,7 +13,7 @@ const EA_API_BASE = "https://proclubs.ea.com/api/fc";
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
-async function fetchWithCache(url: string, cacheKey: string) {
+async function fetchWithCache(url: string, cacheKey: string, fallback: any = []) {
   const cached = cache.get(cacheKey);
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     return cached.data;
@@ -32,12 +32,10 @@ async function fetchWithCache(url: string, cacheKey: string) {
     return data;
   } catch (error) {
     console.error(`Erro ao buscar ${url}:`, error);
-    // Em caso de erro, tentar retornar o último dado em cache se existir
     if (cached) {
-      console.warn(`Retornando dados em cache para ${cacheKey} devido a erro na API externa.`);
       return cached.data;
     }
-    throw error; // Se não houver cache, propaga o erro
+    return fallback;
   }
 }
 
