@@ -81,7 +81,13 @@ const TopPlayerCard = memo(({ player, rank, category }: any) => {
 TopPlayerCard.displayName = 'TopPlayerCard';
 
 export default memo(function TopPlayers() {
-  const { data: topData } = trpc.club.topPlayers.useQuery();
+  const { data: clubData } = trpc.club.getData.useQuery();
+  
+  const topData = clubData ? {
+    topByGoals: (clubData.memberStats || []).sort((a: any, b: any) => b.goals - a.goals).slice(0, 5),
+    topByAssists: (clubData.memberStats || []).sort((a: any, b: any) => b.assists - a.assists).slice(0, 5),
+    topByRating: (clubData.memberStats || []).sort((a: any, b: any) => b.rating - a.rating).slice(0, 5),
+  } : undefined;
 
   if (!topData) {
     return (

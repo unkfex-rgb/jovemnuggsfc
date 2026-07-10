@@ -89,7 +89,8 @@ const BestPlayerCard = memo(({ player, position, rank }: any) => {
 BestPlayerCard.displayName = 'BestPlayerCard';
 
 export default memo(function BestPlayers() {
-  const { data: stats } = trpc.club.stats.useQuery();
+  const { data: clubData } = trpc.club.getData.useQuery();
+  const stats = clubData ? { players: clubData.memberStats } : undefined;
   const [scrollPosition, setScrollPosition] = React.useState(0);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 

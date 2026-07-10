@@ -54,18 +54,32 @@ export const appRouter = router({
           matches = ourProMatches.map((match: any) => {
             const ourClub = match.match_data?.clubs?.[CLUB_ID];
             const opponentClub = Object.values(match.match_data?.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
+            
+            const teamGoals = parseInt(ourClub?.goals) || 0;
+            const oppGoals = parseInt(opponentClub?.goals) || 0;
+            
+            // BUG FIX #1: Calcular resultado comparando gols (não depender do campo result da API)
+            let result = "D"; // Default: empate
+            if (teamGoals > oppGoals) result = "W";
+            else if (teamGoals < oppGoals) result = "L";
+            
+            // BUG FIX #4: Validar nome do adversário
+            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim() 
+              ? opponentClub.clubName 
+              : "Adversário não informado";
+            
             return {
               matchId: match.match_data?.matchId || match.id?.toString() || Math.random().toString(36),
               timestamp: match.match_data?.timestamp || match.match_date || Date.now() / 1000,
               date: (match.match_data?.timestamp || match.match_date) ? new Date((match.match_data?.timestamp || match.match_date) * 1000).toISOString().split('T')[0] : 'Recent',
               homeClubName: ourClub?.clubName || "Jovem Nuggs FC",
-              awayClubName: opponentClub?.clubName || "Oponente",
-              homeGoals: parseInt(ourClub?.goals) || 0,
-              awayGoals: parseInt(opponentClub?.goals) || 0,
-              result: ourClub?.result === "win" ? "W" : (ourClub?.result === "loss" ? "L" : "D"),
-              teamGoals: parseInt(ourClub?.goals) || 0,
-              oppGoals: parseInt(opponentClub?.goals) || 0,
-              opponent: opponentClub?.clubName || "Oponente",
+              awayClubName: opponentName,
+              homeGoals: teamGoals,
+              awayGoals: oppGoals,
+              result: result,
+              teamGoals: teamGoals,
+              oppGoals: oppGoals,
+              opponent: opponentName,
               playerStats: match.player_data || {}
             };
           });
@@ -82,6 +96,41 @@ export const appRouter = router({
             return acc;
           }, { total: 0, wins: 0, losses: 0, draws: 0, gf: 0, ga: 0, cleanSheets: 0 });
 
+          // BUG FIX #6: Calcular sequência atual e melhor sequência
+          let currentStreakObj = { type: null, count: 0 };
+          let bestStreakCount = 0;
+          
+          if (matches.length > 0) {
+            // Sequência atual (de trás para frente)
+            let tempType = matches[matches.length - 1].result;
+            let tempCount = 1;
+            for (let i = matches.length - 2; i >= 0; i--) {
+              if (matches[i].result === tempType) {
+                tempCount++;
+              } else {
+                break;
+              }
+            }
+            currentStreakObj = { type: tempType, count: tempCount };
+            
+            // Melhor sequência (iterar por todas)
+            let maxCount = 0;
+            let currentType = matches[0].result;
+            let count = 1;
+            for (let i = 1; i < matches.length; i++) {
+              if (matches[i].result === currentType) {
+                count++;
+              } else {
+                maxCount = Math.max(maxCount, count);
+                currentType = matches[i].result;
+                count = 1;
+              }
+            }
+            maxCount = Math.max(maxCount, count);
+            bestStreakCount = maxCount;
+          }
+
+          // BUG FIX #2: Recalcular estatísticas com os resultados corrigidos
           overallStats.gamesPlayed = calcStats.total;
           overallStats.wins = calcStats.wins;
           overallStats.losses = calcStats.losses;
@@ -92,6 +141,8 @@ export const appRouter = router({
           overallStats.cleanSheets = calcStats.cleanSheets;
           overallStats.winRate = calcStats.total > 0 ? (calcStats.wins / calcStats.total) * 100 : 0;
           overallStats.goalsPerGame = calcStats.total > 0 ? calcStats.gf / calcStats.total : 0;
+          overallStats.currentStreak = currentStreakObj;
+          overallStats.bestStreak = bestStreakCount;
           
           // Calcular estatísticas de membros a partir do histórico de partidas
           const playerMap = new Map<string, any>();

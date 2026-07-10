@@ -2,12 +2,12 @@ import React, { memo } from 'react';
 import { trpc } from '@/lib/trpc';
 
 export default memo(function Stats() {
-  const { data: stats } = trpc.club.stats.useQuery();
+  const { data: clubData } = trpc.club.getData.useQuery();
   
-  const totalMatches = stats?.totalMatches || 0;
-  const wins = stats?.wins || 0;
-  const totalGoals = stats?.totalGoals || 0;
-  const totalAssists = Object.values(stats?.players || {}).reduce((sum: number, p: any) => sum + (p.assists || 0), 0);
+  const totalMatches = clubData?.overallStats?.gamesPlayed || 0;
+  const wins = clubData?.overallStats?.wins || 0;
+  const totalGoals = clubData?.overallStats?.goals || 0;
+  const totalAssists = (clubData?.memberStats || []).reduce((sum: number, p: any) => sum + (p.assists || 0), 0);
   
   return (
     <section id="stats" className="relative py-20 px-5 overflow-hidden">
