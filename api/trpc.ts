@@ -6,7 +6,6 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 
 const CLUB_ID = "8044401";
-const OURPRO_PLATFORM = "ps5"; // OurProClub Platform
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos de cache
 const cache = new Map<string, { data: any; timestamp: number }>();
 
@@ -14,7 +13,6 @@ async function fetchData(url: string, options: any = {}, fallback: any = null) {
   const cacheKey = url + JSON.stringify(options);
   const cached = cache.get(cacheKey);
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-    console.log(`Cache hit for ${url}`);
     return cached.data;
   }
 
@@ -45,74 +43,104 @@ const appRouter = router({
       const proClubsTrackerUrl = `https://proclubstracker.com/club/${CLUB_ID}?platform=common-gen5&div=5`;
       const ourProClubMatchHistoryUrl = `https://api.ourproclub.app/api/match/history?clubId=${CLUB_ID}`;
 
-      let clubInfo: any = {};
-      let overallStats: any = {};
+      let clubInfo: any = {
+        clubName: "Jovem Nuggs FC",
+        division: "5",
+        skillRating: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0
+      };
+      
+      let overallStats: any = {
+        gamesPlayed: 0,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        winRate: 0,
+        goals: 0,
+        conceded: 0,
+        goalDiff: 0,
+        goalsPerGame: 0,
+        concededPerGame: 0,
+        cleanSheets: 0,
+        currentStreak: "",
+        promotions: 0,
+        relegations: 0
+      };
+      
       let memberStats: any[] = [];
       let matches: any[] = [];
 
-      // 1. Scrapear dados do Pro Clubs Tracker
+      // 1. Scrapear dados do Pro Clubs Tracker (ESTATÍSTICAS DO CLUBE E JOGADORES)
       try {
         const html = await fetchData(proClubsTrackerUrl, {}, null);
         if (html) {
           const $ = cheerio.load(html);
 
-          // Extrair Club Info
-          clubInfo.clubName = $("h1").text().trim();
-          clubInfo.division = $(".club-stats-header .division-badge").text().trim();
-          clubInfo.skillRating = parseInt($(".club-stats-header .sr-badge").text().replace("SR:", "").trim()) || 0;
-          const recordText = $(".club-stats-header .record").text().trim();
-          const recordParts = recordText.split("W").map(s => s.trim().replace("D", "").replace("L", "")).filter(Boolean).map(Number);
+          // Extrair Club Info e Stats das badges e record
+          const srText = $(".club-stats-header .sr-badge").text().replace("SR:", "").trim();
+          clubInfo.skillRating = parseInt(srText) || 0;
+          
+          const recordText = $(".club-stats-header .record").text().trim(); // Ex: "53W - 12D - 25L"
+          const recordParts = recordText.split("-").map(s => parseInt(s.trim().replace(/[^\d]/g, "")));
+          
           clubInfo.wins = recordParts[0] || 0;
           clubInfo.draws = recordParts[1] || 0;
           clubInfo.losses = recordParts[2] || 0;
-
-          // Extrair Overall Stats
-          overallStats.gamesPlayed = clubInfo.wins + clubInfo.draws + clubInfo.losses;
+          
           overallStats.wins = clubInfo.wins;
           overallStats.draws = clubInfo.draws;
           overallStats.losses = clubInfo.losses;
-          overallStats.winRate = parseFloat($("div:contains(\"Win Rate\")").next().text().replace("%", "")) || 0;
-          overallStats.goals = parseInt($("div:contains(\"Goals\")").next().text()) || 0;
-          overallStats.conceded = parseInt($("div:contains(\"Conceded\")").next().text()) || 0;
-          overallStats.goalDiff = parseInt($("div:contains(\"Goal Diff\")").next().text()) || 0;
-          overallStats.goalsPerGame = parseFloat($("div:contains(\"Goals/Game\")").next().text()) || 0;
-          overallStats.concededPerGame = parseFloat($("div:contains(\"Conceded/Game\")").next().text()) || 0;
-          overallStats.cleanSheets = parseInt($("div:contains(\"Clean Sheets\")").next().text()) || 0;
-          overallStats.currentStreak = $("div:contains(\"Current Streak\")").next().text().trim() || "";
-          overallStats.promotions = parseInt($("div:contains(\"Promotions\")").next().text()) || 0;
-          overallStats.relegations = parseInt($("div:contains(\"Relegations\")").next().text()) || 0;
+          overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
+          
+          // Extrair dados das tabelas de estatísticas
+          $(".stats-grid .stat-item").each((i, el) => {
+            const label = $(el).find(".label").text().trim().toLowerCase();
+            const value = $(el).find(".value").text().trim();
+            
+            if (label.includes("goals") && !label.includes("/")) overallStats.goals = parseInt(value) || 0;
+            if (label.includes("conceded") && !label.includes("/")) overallStats.conceded = parseInt(value) || 0;
+            if (label.includes("clean sheets")) overallStats.cleanSheets = parseInt(value) || 0;
+            if (label.includes("streak")) overallStats.currentStreak = value;
+          });
+          
+          overallStats.goalDiff = overallStats.goals - overallStats.conceded;
+          overallStats.winRate = overallStats.gamesPlayed > 0 ? (overallStats.wins / overallStats.gamesPlayed) * 100 : 0;
+          overallStats.goalsPerGame = overallStats.gamesPlayed > 0 ? overallStats.goals / overallStats.gamesPlayed : 0;
+          overallStats.concededPerGame = overallStats.gamesPlayed > 0 ? overallStats.conceded / overallStats.gamesPlayed : 0;
 
-          // Extrair Member Stats (exemplo, pode precisar de mais refinamento)
-          // Iterar sobre a tabela de jogadores
+          // Extrair Jogadores
           $("table.player-stats-table tbody tr").each((i, element) => {
             const player: any = {};
-            player.name = $(element).find("td:nth-child(1)").text().trim();
-            player.games = parseInt($(element).find("td:nth-child(2)").text()) || 0;
-            player.goals = parseInt($(element).find("td:nth-child(3)").text()) || 0;
-            player.assists = parseInt($(element).find("td:nth-child(4)").text()) || 0;
-            player.rating = parseFloat($(element).find("td:nth-child(5)").text()) || 0;
-            memberStats.push(player);
+            player.name = $(element).find("td").eq(0).text().trim();
+            player.games = parseInt($(element).find("td").eq(1).text()) || 0;
+            player.goals = parseInt($(element).find("td").eq(2).text()) || 0;
+            player.assists = parseInt($(element).find("td").eq(3).text()) || 0;
+            player.rating = parseFloat($(element).find("td").eq(4).text()) || 0;
+            if (player.name) memberStats.push(player);
           });
         }
       } catch (error) {
-        console.error("Erro ao scrapear Pro Clubs Tracker:", error);
+        console.error("Erro ao processar Pro Clubs Tracker:", error);
       }
 
-      // 2. Buscar histórico de partidas do OurProClub API
+      // 2. Buscar histórico de partidas do OurProClub API (HISTÓRICO)
       try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
-        matches = ourProMatches.map((match: any) => ({
-          matchId: match.matchId,
-          timestamp: match.timestamp,
-          homeClubName: match.homeClubName,
-          awayClubName: match.awayClubName,
-          homeGoals: match.homeGoals,
-          awayGoals: match.awayGoals,
-          result: match.result, // "win", "loss", "draw"
-          // Adicione outros campos relevantes do OurProClub se necessário
-        }));
+        if (Array.isArray(ourProMatches)) {
+          matches = ourProMatches.slice(0, 20).map((match: any) => ({
+            matchId: match.matchId || Math.random().toString(36),
+            timestamp: match.timestamp || Date.now() / 1000,
+            homeClubName: match.homeClubName || "Jovem Nuggs FC",
+            awayClubName: match.awayClubName || "Oponente",
+            homeGoals: parseInt(match.homeGoals) || 0,
+            awayGoals: parseInt(match.awayGoals) || 0,
+            result: match.result || (match.homeGoals > match.awayGoals ? "win" : "loss"),
+          }));
+        }
       } catch (error) {
-        console.error("Erro ao buscar histórico de partidas do OurProClub:", error);
+        console.error("Erro ao buscar OurProClub matches:", error);
       }
 
       return {
