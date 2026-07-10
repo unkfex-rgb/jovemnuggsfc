@@ -68,7 +68,6 @@ const appRouter = router({
         promotions: 0,
         relegations: 0
       };
-      
       let memberStats: any[] = [];
       let matches: any[] = [];
 
@@ -140,7 +139,7 @@ const appRouter = router({
             result: match.result === "win" ? "W" : (match.result === "loss" ? "L" : "D"),
             teamGoals: match.homeGoals,
             oppGoals: match.awayGoals,
-            date: new Date(match.timestamp * 1000).toISOString().split('T')[0],
+            date: match.timestamp ? new Date(match.timestamp * 1000).toISOString().split(\'T\')[0] : \'\',
             opponent: match.awayClubName,
           }));
         }
