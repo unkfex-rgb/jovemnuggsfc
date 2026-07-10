@@ -17,16 +17,16 @@ export const PlayerProfileModal = React.memo(({ player, isOpen, onClose, allPlay
   const [isShareOpen, setIsShareOpen] = React.useState(false);
   if (!player) return null;
 
+  // BUG FIX #5: Removido Passes (não disponível na API)
   const stats = [
     { label: 'Partidas', value: player.matches, icon: TrendingUp, color: 'text-blue-400' },
     { label: 'Gols', value: player.goals, icon: Target, color: 'text-red-400' },
     { label: 'Assistências', value: player.assists, icon: Zap, color: 'text-yellow-400' },
-    { label: 'Passes', value: player.passes, icon: Shield, color: 'text-green-400' },
   ];
 
+  // BUG FIX #5: Removido Shots (não disponível na API)
   const performance = [
     { label: 'Nota Média', value: player.avgRating.toFixed(2), color: 'from-purple-500 to-pink-500' },
-    { label: 'Shots', value: player.shots, color: 'from-orange-500 to-red-500' },
     { label: 'Clean Sheets', value: player.cleanSheets, color: 'from-blue-500 to-cyan-500' },
     { label: 'Posição', value: getPositionLabel(player.position), color: 'from-green-500 to-emerald-500' },
   ];

@@ -1,6 +1,6 @@
-import React, { memo, useContext } from 'react';
 import { getInitials, getPositionLabel, getPositionColor } from '../lib/playerUtils';
 import { motion } from 'framer-motion';
+import { memo, useContext } from 'react';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from './ui/hover-card';
 import { MatchRatingChart } from './MatchRatingChart';
 import { PlayerBadges } from './PlayerBadges';
@@ -52,7 +52,7 @@ export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) =>
 
               <div className="flex flex-col items-center">
                 {/* Player Avatar Placeholder / Initials */}
-                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-3 sm:mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative" loading="lazy">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-gradient-to-b from-white/20 to-transparent flex items-center justify-center mb-3 sm:mb-4 border border-white/10 group-hover:scale-110 transition-transform duration-500 relative">
                    <div className="absolute inset-0 bg-white/5 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                    <span className="text-2xl sm:text-4xl font-black text-white/80">{getInitials(player.name)}</span>
                 </div>
@@ -75,17 +75,7 @@ export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) =>
                 </div>
               </div>
 
-              {/* Bottom Stats Grid */}
-              <div className="grid grid-cols-2 gap-2 pt-4 border-t border-white/10 mt-4">
-                <div className="flex flex-col items-center">
-                   <span className="text-[8px] text-white/30 uppercase font-bold">Passes</span>
-                   <span className="text-xs font-bold text-white">{player.passes}</span>
-                </div>
-                <div className="flex flex-col items-center">
-                   <span className="text-[8px] text-white/30 uppercase font-bold">Shots</span>
-                   <span className="text-xs font-bold text-white">{player.shots}</span>
-                </div>
-              </div>
+              {/* BUG FIX #5: Removido campos Passes e Shots (dados não disponíveis na API) */}
             </div>
 
             {/* Scanlines Effect */}
@@ -97,9 +87,9 @@ export const PlayerCard = memo(({ player, allPlayers = [] }: PlayerCardProps) =>
         </motion.div>
       </HoverCardTrigger>
 
-      {/* Hover Card Content - Performance Chart */}
+      {/* Hover Card Content - Performance Chart - BUG FIX #7: Posicionamento corrigido */}
       {matches && matches.length > 0 && (
-        <HoverCardContent className="w-72 bg-black/90 backdrop-blur-md border border-white/20 p-4" align="center" sideOffset={10}>
+        <HoverCardContent className="w-80 bg-black/90 backdrop-blur-md border border-white/20 p-4 z-50" align="start" side="top" sideOffset={15}>
           <div className="space-y-2">
             <h4 className="text-sm font-bold text-white">Performance</h4>
             <MatchRatingChart playerName={player.name} matches={matches} />

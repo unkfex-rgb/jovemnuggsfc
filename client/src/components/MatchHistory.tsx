@@ -74,8 +74,9 @@ export default memo(function MatchHistory({ matches, loading }: MatchHistoryProp
                   labelStyle={{ color: 'white' }}
                   formatter={(value) => [`Saldo: ${value}`, 'Cumulativo']}
                 />
+                {/* BUG FIX #9: Trocar de spline/monotone para linear */}
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey="saldo"
                   stroke="url(#colorSaldo)"
                   strokeWidth={2}
