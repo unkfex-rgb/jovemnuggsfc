@@ -2,93 +2,54 @@
  * Tipos para a API do Pro Club
  */
 
-export interface RawMatchData {
-  match_data: {
-    matchId: string;
-    timestamp: number;
-    timeAgo: string;
-    clubs: Record<string, {
-      clubId: string;
-      clubName: string;
-      goals: string;
-      wins: string;
-      losses: string;
-      ties: string;
-      result: string;
-    }>;
-  };
-  player_data: Record<string, RawPlayerStats>;
+export interface ClubInfo {
+  clubName: string;
+  division: string;
+  skillRating: number;
+  wins: number;
+  draws: number;
+  losses: number;
 }
 
-export interface RawPlayerStats {
-  mom: string;
-  pos: string;
-  goals: string;
-  saves: string;
-  shots: string;
-  rating: string;
-  assists: string;
-  dribbles: number;
-  redcards: string;
-  passesmade: string;
-  archetypeid: string;
-  tacklesmade: string;
-  passattempts: string;
-  cleansheetsgk: string;
-  interceptions: number;
-  secondAssists: number;
-  secondsPlayed: string;
-  cleansheetsdef: string;
-  tackleattempts: string;
+export interface OverallStats {
+  gamesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  goals: number;
+  conceded: number;
+  goalDiff: number;
+  goalsPerGame: number;
+  concededPerGame: number;
+  cleanSheets: number;
+  currentStreak: string;
+  promotions: number;
+  relegations: number;
+}
+
+export interface Member {
+  name: string;
+  games: number;
+  goals: number;
+  assists: number;
+  rating: number;
 }
 
 export interface Match {
-  id: string;
+  matchId: string;
   timestamp: number;
-  date: string;
-  opponent: string;
-  teamGoals: number;
-  oppGoals: number;
-  result: "W" | "L" | "D";
-  playerStats: Record<string, RawPlayerStats>;
+  homeClubName: string;
+  awayClubName: string;
+  homeGoals: number;
+  awayGoals: number;
+  result: string; // "win", "loss", "draw"
 }
 
-export interface Player {
-  name: string;
-  position: string;
-  goals: number;
-  assists: number;
-  matches: number;
-  avgRating: number;
-  cleanSheets: number;
-  shots: number;
-  passes: number;
-  tackles: number;
-  saves: number;
-}
-
-export interface ClubStats {
-  total: number;
-  wins: number;
-  losses: number;
-  draws: number;
-  gf: number;
-  ga: number;
-  saldo: number;
-  aproveitamento: number;
-  cleanSheets: number;
-  mediaGols: number;
-  currentStreak: {
-    type: "W" | "L" | "D" | string;
-    count: number;
-  };
-  bestStreak: number;
-  division: number;
-  skillRating: number;
-}
-
-export interface ProClubResponse {
+export interface AggregatedClubData {
+  clubInfo: ClubInfo;
+  overallStats: OverallStats;
+  memberStats: Member[];
   matches: Match[];
-  players: Player[];
-  stats: ClubStats;
+  timestamp: number;
 }

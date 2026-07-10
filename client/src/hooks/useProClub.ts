@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { proClubAPI } from "@/services/api";
-import type { Match, Player, ClubStats } from "@/types/api";
+import type { Match, Member, ClubInfo, OverallStats } from "@/types/api";
 
 export function useProClub() {
   const [matches, setMatches] = useState<Match[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [stats, setStats] = useState<ClubStats | null>(null);
+  const [players, setPlayers] = useState<Member[]>([]);
+  const [stats, setStats] = useState<{ clubInfo: ClubInfo; overallStats: OverallStats } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
