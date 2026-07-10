@@ -41,28 +41,67 @@ const publicProcedure = t.procedure;
 const appRouter = router({
   club: router({
     getData: publicProcedure.query(async () => {
-      // Tenta OurProClub primeiro (mais estável para Vercel)
       const ourProBase = `https://api.ourproclub.app/api/v1`;
-      
-      const [ourProInfo, ourProStats, ourProMembers, ourProMatches] = await Promise.all([
-        fetchWithRetry(`${ourProBase}/clubs/info?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}`),
-        fetchWithRetry(`${ourProBase}/clubs/overallStats?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}`),
-        fetchWithRetry(`${ourProBase}/members/stats?platform=${OURPRO_PLATFORM}&clubId=${CLUB_ID}`),
-        fetchWithRetry(`${ourProBase}/clubs/matches?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}&matchType=leagueMatch`),
-      ]);
+      const eaBase = `https://proclubs.ea.com/api/fc`;
 
-      // Se OurProClub falhar, tenta EA (fallback)
-      let eaInfo = null;
-      if (!ourProInfo || Object.keys(ourProInfo).length === 0) {
-        eaInfo = await fetchWithRetry(`https://proclubs.ea.com/api/fc/clubs/info?platform=${PLATFORM}&clubIds=${CLUB_ID}`);
+      let clubInfo = null;
+      let overallStats = null;
+      let memberStats = null;
+      let matches = [];
+
+      // Tenta buscar dados do OurProClub primeiro
+      try {
+        const [ourProClubInfo, ourProOverallStats, ourProMemberStats, ourProLeagueMatches, ourProPlayoffMatches] = await Promise.all([
+          fetchWithRetry(`${ourProBase}/clubs/info?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}`),
+          fetchWithRetry(`${ourProBase}/clubs/overallStats?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}`),
+          fetchWithRetry(`${ourProBase}/members/stats?platform=${OURPRO_PLATFORM}&clubId=${CLUB_ID}`),
+          fetchWithRetry(`${ourProBase}/clubs/matches?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}&matchType=leagueMatch`),
+          fetchWithRetry(`${ourProBase}/clubs/matches?platform=${OURPRO_PLATFORM}&clubIds=${CLUB_ID}&matchType=playoffMatch`),
+        ]);
+
+        if (ourProClubInfo && ourProClubInfo.length > 0) {
+          clubInfo = ourProClubInfo[0];
+        }
+        if (ourProOverallStats && ourProOverallStats.length > 0) {
+          overallStats = ourProOverallStats[0];
+        }
+        memberStats = ourProMemberStats;
+        matches = [...(ourProLeagueMatches || []), ...(ourProPlayoffMatches || [])];
+
+      } catch (error) {
+        console.warn("Erro ao buscar dados do OurProClub, tentando EA API:", error);
+      }
+
+      // Se OurProClub não retornar dados essenciais, tenta a EA API
+      if (!clubInfo || !overallStats) {
+        try {
+          const [eaClubInfo, eaOverallStats, eaMemberStats, eaLeagueMatches, eaPlayoffMatches] = await Promise.all([
+            fetchWithRetry(`${eaBase}/clubs/info?platform=${PLATFORM}&clubIds=${CLUB_ID}`),
+            fetchWithRetry(`${eaBase}/clubs/overallStats?platform=${PLATFORM}&clubIds=${CLUB_ID}`),
+            fetchWithRetry(`${eaBase}/members/stats?platform=${PLATFORM}&clubId=${CLUB_ID}`),
+            fetchWithRetry(`${eaBase}/clubs/matches?platform=${PLATFORM}&clubIds=${CLUB_ID}&matchType=leagueMatch&maxResultCount=20`),
+            fetchWithRetry(`${eaBase}/clubs/matches?platform=${PLATFORM}&clubIds=${CLUB_ID}&matchType=playoffMatch&maxResultCount=20`),
+          ]);
+
+          if (eaClubInfo && eaClubInfo.length > 0) {
+            clubInfo = eaClubInfo[0];
+          }
+          if (eaOverallStats && eaOverallStats.length > 0) {
+            overallStats = eaOverallStats[0];
+          }
+          memberStats = memberStats || eaMemberStats; // Prioriza OurProClub se tiver dados
+          matches = matches.length > 0 ? matches : [...(eaLeagueMatches || []), ...(eaPlayoffMatches || [])];
+
+        } catch (error) {
+          console.error("Erro ao buscar dados da EA API:", error);
+        }
       }
 
       return {
-        clubInfo: ourProInfo || eaInfo,
-        overallStats: ourProStats,
-        memberStats: ourProMembers,
-        matches: ourProMatches || [],
-        source: ourProInfo ? "ourproclub" : "ea",
+        clubInfo,
+        overallStats,
+        memberStats,
+        matches,
         timestamp: Date.now()
       };
     }),
