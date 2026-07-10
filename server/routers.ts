@@ -54,64 +54,15 @@ export const appRouter = router({
       let matches: any[] = [];
 
       try {
-        const html = await fetchData(proClubsTrackerUrl, { responseType: 'text' }, null);
-        if (html) {
-          const $ = cheerio.load(html);
-          const nextData = $('#__NEXT_DATA__').html();
-          if (nextData) {
-            try {
-              const parsed = JSON.parse(nextData);
-              const props = parsed.props?.pageProps || {};
-              const club = props.club || {};
-              clubInfo.skillRating = club.skillRating || 0;
-              clubInfo.wins = overallStats.wins = club.wins || 0;
-              clubInfo.draws = overallStats.draws = club.ties || 0;
-              clubInfo.losses = overallStats.losses = club.losses || 0;
-              overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
-              overallStats.goals = club.goals || 0;
-              overallStats.conceded = club.goalsAgainst || 0;
-              overallStats.cleanSheets = club.cleanSheets || 0;
-              if (props.memberStats?.members) {
-                memberStats = props.memberStats.members.map((m: any) => ({
-                  name: m.name,
-                  games: parseInt(m.gamesPlayed) || 0,
-                  goals: parseInt(m.goals) || 0,
-                  assists: parseInt(m.assists) || 0,
-                  rating: parseFloat(m.ratingAve) || 0,
-                  position: m.favoritePosition || "N/A"
-                }));
-              }
-            } catch (e) { console.error(e); }
-          }
-          if (overallStats.gamesPlayed === 0) {
-            const srText = $("span:contains('SR:')").text().replace("SR:", "").trim();
-            clubInfo.skillRating = parseInt(srText) || 0;
-            $("div.bg-gray-800.rounded-lg.p-4").each((i, el) => {
-              const label = $(el).find("div.text-gray-400").text().trim().toLowerCase();
-              const value = $(el).find("div.text-2xl.font-bold").text().trim();
-              if (label.includes("goals") && !label.includes("/")) overallStats.goals = parseInt(value) || 0;
-              if (label.includes("conceded") && !label.includes("/")) overallStats.conceded = parseInt(value) || 0;
-              if (label.includes("clean sheets")) overallStats.cleanSheets = parseInt(value) || 0;
-              if (label.includes("streak")) overallStats.currentStreak = value;
-            });
-          }
-          overallStats.goalDiff = overallStats.goals - overallStats.conceded;
-          overallStats.winRate = overallStats.gamesPlayed > 0 ? (overallStats.wins / overallStats.gamesPlayed) * 100 : 0;
-          overallStats.goalsPerGame = overallStats.gamesPlayed > 0 ? overallStats.goals / overallStats.gamesPlayed : 0;
-          overallStats.concededPerGame = overallStats.gamesPlayed > 0 ? overallStats.conceded / overallStats.gamesPlayed : 0;
-        }
-      } catch (e) { console.error(e); }
-
-      try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
         if (Array.isArray(ourProMatches)) {
-          matches = ourProMatches.slice(0, 30).map((match: any) => {
+          matches = ourProMatches.map((match: any) => {
             const ourClub = match.match_data?.clubs?.[CLUB_ID];
             const opponentClub = Object.values(match.match_data?.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
             return {
-              matchId: match.match_data?.matchId || Math.random().toString(36),
-              timestamp: match.match_data?.timestamp || Date.now() / 1000,
-              date: match.match_data?.timestamp ? new Date(match.match_data.timestamp * 1000).toISOString().split('T')[0] : '',
+              matchId: match.match_data?.matchId || match.id?.toString() || Math.random().toString(36),
+              timestamp: match.match_data?.timestamp || match.match_date || Date.now() / 1000,
+              date: (match.match_data?.timestamp || match.match_date) ? new Date((match.match_data?.timestamp || match.match_date) * 1000).toISOString().split('T')[0] : 'Recent',
               homeClubName: ourClub?.clubName || "Jovem Nuggs FC",
               awayClubName: opponentClub?.clubName || "Oponente",
               homeGoals: parseInt(ourClub?.goals) || 0,
@@ -123,10 +74,77 @@ export const appRouter = router({
               playerStats: match.player_data || {}
             };
           });
+
+          const calcStats = matches.reduce((acc, m) => {
+            acc.total++;
+            if (m.result === "W") acc.wins++;
+            else if (m.result === "L") acc.losses++;
+            else acc.draws++;
+            acc.gf += m.teamGoals;
+            acc.ga += m.oppGoals;
+            if (m.oppGoals === 0) acc.cleanSheets++;
+            return acc;
+          }, { total: 0, wins: 0, losses: 0, draws: 0, gf: 0, ga: 0, cleanSheets: 0 });
+
+          overallStats.gamesPlayed = calcStats.total;
+          overallStats.wins = calcStats.wins;
+          overallStats.losses = calcStats.losses;
+          overallStats.draws = calcStats.draws;
+          overallStats.goals = calcStats.gf;
+          overallStats.conceded = calcStats.ga;
+          overallStats.goalDiff = calcStats.gf - calcStats.ga;
+          overallStats.cleanSheets = calcStats.cleanSheets;
+          overallStats.winRate = calcStats.total > 0 ? (calcStats.wins / calcStats.total) * 100 : 0;
+          overallStats.goalsPerGame = calcStats.total > 0 ? calcStats.gf / calcStats.total : 0;
+          
+          const playerMap = new Map<string, any>();
+          ourProMatches.forEach((m: any) => {
+            if (m.player_data) {
+              Object.entries(m.player_data).forEach(([name, stats]: [string, any]) => {
+                if (!playerMap.has(name)) {
+                  playerMap.set(name, { name, games: 0, goals: 0, assists: 0, ratingSum: 0, position: stats.pos || "N/A" });
+                }
+                const p = playerMap.get(name);
+                p.games++;
+                p.goals += parseInt(stats.goals) || 0;
+                p.assists += parseInt(stats.assists) || 0;
+                p.ratingSum += parseFloat(stats.rating) || 0;
+              });
+            }
+          });
+          memberStats = Array.from(playerMap.values()).map(p => ({
+            ...p,
+            rating: p.games > 0 ? p.ratingSum / p.games : 0
+          })).sort((a, b) => b.rating - a.rating);
         }
       } catch (e) { console.error(e); }
 
-      return { clubInfo, overallStats, memberStats, matches, timestamp: Date.now() };
+      try {
+        const html = await fetchData(proClubsTrackerUrl, { responseType: 'text' }, null);
+        if (html) {
+          const $ = cheerio.load(html);
+          const nextData = $('#__NEXT_DATA__').html();
+          if (nextData) {
+            try {
+              const parsed = JSON.parse(nextData);
+              const props = parsed.props?.pageProps || {};
+              const club = props.club || {};
+              if (club.skillRating) clubInfo.skillRating = club.skillRating;
+              if (club.wins > overallStats.wins) {
+                overallStats.wins = club.wins;
+                overallStats.draws = club.ties;
+                overallStats.losses = club.losses;
+                overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
+                overallStats.goals = club.goals || overallStats.goals;
+                overallStats.conceded = club.goalsAgainst || overallStats.conceded;
+                overallStats.cleanSheets = club.cleanSheets || overallStats.cleanSheets;
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (e) { console.error(e); }
+
+      return { clubInfo, overallStats, memberStats, matches: matches.slice(0, 30), timestamp: Date.now() };
     }),
   }),
 });
