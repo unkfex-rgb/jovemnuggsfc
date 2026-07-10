@@ -1,4 +1,4 @@
-import { trpc } from "@/utils/trpc";
+import { trpc } from "@/lib/trpc";
 import { proClubService } from "@/services/api";
 import type { Match, Player, ClubStats } from "@/types/api";
 import { useMemo } from "react";
