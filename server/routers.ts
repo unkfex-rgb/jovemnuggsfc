@@ -79,23 +79,42 @@ export const appRouter = router({
   }),
 
   club: router({
-    clubInfo: publicProcedure.query(async () => {
-      return await fetchClubInfo();
-    }),
-    overallStats: publicProcedure.query(async () => {
-      return await fetchOverallStats();
-    }),
-    memberStats: publicProcedure.query(async () => {
-      return await fetchMemberStats();
-    }),
-    memberCareerStats: publicProcedure.query(async () => {
-      return await fetchMemberCareerStats();
-    }),
-    leagueMatches: publicProcedure.query(async () => {
-      return await fetchLeagueMatches();
-    }),
-    playoffMatches: publicProcedure.query(async () => {
-      return await fetchPlayoffMatches();
+    // Endpoint Unificado (Agregador)
+    getData: publicProcedure.query(async () => {
+      try {
+        const [clubInfo, overallStats, memberStats, leagueMatches, playoffMatches] = await Promise.all([
+          fetchClubInfo(),
+          fetchOverallStats(),
+          fetchMemberStats(),
+          fetchLeagueMatches(),
+          fetchPlayoffMatches(),
+        ]);
+
+        // Tentar buscar dados do Tracker para enriquecimento (opcional, não trava se falhar)
+        let trackerData = null;
+        try {
+          const trackerResponse = await fetch(`https://proclubstracker.com/api/clubs/${CLUB_ID}?platform=${PLATFORM}`, {
+            headers: { "User-Agent": "Mozilla/5.0" }
+          });
+          if (trackerResponse.ok) {
+            trackerData = await trackerResponse.json();
+          }
+        } catch (e) {
+          console.warn("Tracker API indisponível, usando apenas EA API.");
+        }
+
+        return {
+          clubInfo,
+          overallStats,
+          memberStats,
+          matches: [...(leagueMatches || []), ...(playoffMatches || [])],
+          trackerData,
+          timestamp: Date.now()
+        };
+      } catch (error) {
+        console.error("Erro fatal no agregador de dados:", error);
+        throw error;
+      }
     }),
   }),
 });

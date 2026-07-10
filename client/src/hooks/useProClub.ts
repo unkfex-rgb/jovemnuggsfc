@@ -2,17 +2,7 @@ import { useEffect, useState } from "react";
 import { proClubAPI } from "@/services/api";
 import type { Match, Player, ClubStats } from "@/types/api";
 
-
-
-interface UseProClubReturn {
-  matches: Match[];
-  players: Player[];
-  stats: ClubStats | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export function useProClub(): UseProClubReturn {
+export function useProClub() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [stats, setStats] = useState<ClubStats | null>(null);
@@ -20,35 +10,39 @@ export function useProClub(): UseProClubReturn {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let isMounted = true;
+    let pollInterval: NodeJS.Timeout;
+
+    async function fetchData() {
       try {
-        setError(null);
-        setLoading(true);
-
-        const { matches, players } = await proClubAPI.getMatchHistory();
-        const clubStats = await proClubAPI.getClubStats();
-
-        setMatches(matches);
-        setPlayers(players);
-        setStats(clubStats);
-
+        if (isMounted) setLoading(true);
+        const data = await proClubAPI.getAllData();
+        
+        if (isMounted) {
+          setMatches(data.matches);
+          setPlayers(data.players);
+          setStats(data.stats);
+          setError(null);
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Erro ao carregar dados"
-        );
-        console.error("Erro ao carregar dados do Pro Club:", err);
+        if (isMounted) {
+          console.error("Erro no hook useProClub:", err);
+          setError("Erro ao carregar dados do clube. Tente novamente mais tarde.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
-    };
+    }
 
     fetchData();
 
-    const pollInterval = setInterval(() => {
-      fetchData();
-    }, 5 * 60 * 1000); // 5 minutos
+    // Polling automático a cada 5 minutos
+    pollInterval = setInterval(fetchData, 5 * 60 * 1000);
 
-    return () => clearInterval(pollInterval);
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, []);
 
   return { matches, players, stats, loading, error };
