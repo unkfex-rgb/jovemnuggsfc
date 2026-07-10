@@ -78,10 +78,10 @@ const appRouter = router({
           const $ = cheerio.load(html);
 
           // Extrair Club Info e Stats das badges e record
-          const srText = $(".club-stats-header .sr-badge").text().replace("SR:", "").trim();
+          const srText = $("span:contains('SR:')").text().replace("SR:", "").trim();
           clubInfo.skillRating = parseInt(srText) || 0;
           
-          const recordText = $(".club-stats-header .record").text().trim(); // Ex: "53W - 12D - 25L"
+          const recordText = $("div.flex.flex-wrap.items-center.gap-2.text-xs.md\\:text-sm").next("div").find("span.font-bold").map((i, el) => $(el).text().trim()).get().join(" ");
           const recordParts = recordText.split("-").map(s => parseInt(s.trim().replace(/[^\d]/g, "")));
           
           clubInfo.wins = recordParts[0] || 0;
@@ -94,7 +94,7 @@ const appRouter = router({
           overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
           
           // Extrair dados das tabelas de estatísticas
-          $(".stats-grid .stat-item").each((i, el) => {
+          $("div.grid.grid-cols-2.md\\:grid-cols-4.gap-4.mb-8 div.bg-gray-800.rounded-lg.p-4").each((i, el) => {
             const label = $(el).find(".label").text().trim().toLowerCase();
             const value = $(el).find(".value").text().trim();
             
@@ -110,7 +110,7 @@ const appRouter = router({
           overallStats.concededPerGame = overallStats.gamesPlayed > 0 ? overallStats.conceded / overallStats.gamesPlayed : 0;
 
           // Extrair Jogadores
-          $("table.player-stats-table tbody tr").each((i, element) => {
+          $("div.overflow-x-auto table tbody tr").each((i, element) => {
             const player: any = {};
             player.name = $(element).find("td").eq(0).text().trim();
             player.games = parseInt($(element).find("td").eq(1).text()) || 0;
