@@ -18,6 +18,13 @@ async function fetchWithCache(url: string, cacheKey: string, fallback: any = [])
 
   try {
     const response = await fetch(url);
+    if (response.status === 403 && url.includes("proclubs.ea.com")) {
+      // Fallback para OurProClub se a EA bloquear o Vercel
+      const ourProUrl = url.replace("https://proclubs.ea.com/api/fc", "https://api.ourproclub.app/api")
+                           .replace("common-gen5", "ps5"); // Ajuste de plataforma se necessário
+      const fallbackRes = await fetch(ourProUrl);
+      if (fallbackRes.ok) return await fallbackRes.json();
+    }
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     cache.set(cacheKey, { data, timestamp: Date.now() });
