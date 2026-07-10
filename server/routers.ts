@@ -5,7 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { scrapeProClubsPlayers } from "./scrapers/proClubsTracker";
+import { scrapeProClubsPlayers, combinePlayerData } from "./scrapers/proClubsTracker";
 
 const CLUB_ID = "8044401";
 const CACHE_TTL = 5 * 60 * 1000;
@@ -55,26 +55,27 @@ export const appRouter = router({
       let matches: any[] = [];
       let scrapedPlayers: any[] = [];
 
+      // 1. Buscar histórico de partidas da OurProClub API (Fonte Primária para Partidas e Nomes)
       try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
         if (Array.isArray(ourProMatches)) {
           matches = ourProMatches.map((match: any) => {
             const ourClub = match.match_data?.clubs?.[CLUB_ID];
             const opponentClub = Object.values(match.match_data?.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
-            
+
             const teamGoals = parseInt(ourClub?.goals) || 0;
             const oppGoals = parseInt(opponentClub?.goals) || 0;
-            
+
             // BUG FIX #1: Calcular resultado comparando gols (não depender do campo result da API)
             let result = "D"; // Default: empate
             if (teamGoals > oppGoals) result = "W";
             else if (teamGoals < oppGoals) result = "L";
-            
+
             // BUG FIX #4: Validar nome do adversário
-            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim() 
-              ? opponentClub.clubName 
+            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim()
+              ? opponentClub.clubName
               : "Adversário não informado";
-            
+
             return {
               matchId: match.match_data?.matchId || match.id?.toString() || Math.random().toString(36),
               timestamp: match.match_data?.timestamp || match.match_date || Date.now() / 1000,
@@ -105,7 +106,7 @@ export const appRouter = router({
           // BUG FIX #6: Calcular sequência atual e melhor sequência
           let currentStreakObj = { type: null, count: 0 };
           let bestStreakCount = 0;
-          
+
           if (matches.length > 0) {
             // Sequência atual (de trás para frente)
             let tempType = matches[matches.length - 1].result;
@@ -118,7 +119,7 @@ export const appRouter = router({
               }
             }
             currentStreakObj = { type: tempType, count: tempCount };
-            
+
             // Melhor sequência (iterar por todas)
             let maxCount = 0;
             let currentType = matches[0].result;
@@ -148,7 +149,9 @@ export const appRouter = router({
           overallStats.goalsPerGame = calcStats.total > 0 ? calcStats.gf / calcStats.total : 0;
           overallStats.currentStreak = currentStreakObj;
           overallStats.bestStreak = bestStreakCount;
-          
+
+          // Calcular estatísticas de membros a partir do histórico de partidas
+          // Estes nomes são os "Nome do Jogador" (ex: scobyzinn) - os CORRETOS para exibição
           const playerMap = new Map<string, any>();
           ourProMatches.forEach((m: any) => {
             if (m.player_data) {
@@ -171,24 +174,18 @@ export const appRouter = router({
         }
       } catch (e) { console.error(e); }
 
-      // Buscar dados dos jogadores via scraping do Pro Clubs Tracker
+      // 2. Buscar dados dos jogadores via scraping do Pro Clubs Tracker
+      // E COMBINAR com os dados da API, mantendo os nomes corretos
       try {
         scrapedPlayers = await scrapeProClubsPlayers(CLUB_ID);
-        // Converter dados do scraper para o formato esperado
-        memberStats = scrapedPlayers.map((p: any) => ({
-          name: p.name,
-          games: p.games || 0,
-          goals: p.goals || 0,
-          assists: p.assists || 0,
-          ratingSum: (p.rating || 0) * (p.games || 1),
-          position: p.position || "N/A",
-          rating: p.rating || 0
-        })).sort((a: any, b: any) => b.rating - a.rating);
+        // Usar a função combinePlayerData para unir as duas fontes
+        // A API fornece nomes corretos (scobyzinn), o Tracker fornece dados completos (45 jogos, clean sheets, etc.)
+        memberStats = combinePlayerData(memberStats, scrapedPlayers);
       } catch (e) {
         console.error("Erro ao fazer scraping dos jogadores:", e);
       }
 
-      // Tentar obter dados adicionais do club info via HTML do Pro Clubs Tracker
+      // 3. Buscar dados adicionais do club info via HTML do Pro Clubs Tracker
       try {
         const html = await fetchData(proClubsTrackerUrl, { responseType: 'text' }, null);
         if (html) {

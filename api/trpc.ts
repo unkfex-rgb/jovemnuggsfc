@@ -9,6 +9,56 @@ const CLUB_ID = "8044401";
 const CACHE_TTL = 5 * 60 * 1000;
 const cache = new Map<string, { data: any; timestamp: number }>();
 
+/**
+ * Mapeamento de Gamertags do Pro Clubs Tracker para nomes conhecidos da API OurProClub.
+ * A API OurProClub retorna o "Nome do Jogador" (ex: scobyzinn).
+ * O Pro Clubs Tracker retorna o "Gamertag" (ex: SCOBY NUGGET).
+ */
+const GAMERTAG_TO_PLAYER_NAME: Record<string, string> = {
+  "SCOBY NUGGET": "scobyzinn",
+  "Neymar JR": "Vinim71655",
+  "M. Motta": "pedrofeRLK",
+  "S. Covs": "Jessysz0",
+  "araujozx77_": "araujozx77_",
+  "PECINHAA22": "PECINHAA22",
+  "Jessysz0": "Jessysz0",
+  "CELTA4656": "CELTA4656",
+  "rochax07": "rochax07",
+  "tavin__07": "tavin__07",
+  "corintia": "corintia4i20",
+  "KauÃ£": "Kauanpecinha",
+  "A. 77": "araujozx77_",
+  "mesquita_B12": "mesquita_B12",
+  "Vinim71655": "Vinim71655",
+  "pedrofeRLK": "pedrofeRLK",
+};
+
+function normalizeString(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function resolvePlayerName(gamertag: string, knownNames: string[] = []): string {
+  const mapped = GAMERTAG_TO_PLAYER_NAME[gamertag];
+  if (mapped) return mapped;
+
+  const normalized = normalizeString(gamertag);
+  for (const name of knownNames) {
+    if (normalized === normalizeString(name)) return name;
+    const gamertagParts = normalized.split(/[\s_\-]+/);
+    const nameParts = normalizeString(name).split(/[\s_\-]+/);
+    for (const part of gamertagParts) {
+      if (part.length > 2 && nameParts.some(p => p.includes(part) || p.startsWith(part))) {
+        return name;
+      }
+    }
+  }
+  return gamertag;
+}
+
 async function fetchData(url: string, options: any = {}, fallback: any = null) {
   const cacheKey = url + JSON.stringify(options);
   const cached = cache.get(cacheKey);
@@ -47,27 +97,27 @@ export const appRouter = router({
       let memberStats: any[] = [];
       let matches: any[] = [];
 
-      // 1. Buscar histórico de partidas da OurProClub API (Fonte Primária para Partidas)
+      // 1. Buscar histórico de partidas da OurProClub API (Fonte Primária para Partidas e Nomes)
       try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
         if (Array.isArray(ourProMatches)) {
           matches = ourProMatches.map((match: any) => {
             const ourClub = match.match_data?.clubs?.[CLUB_ID];
             const opponentClub = Object.values(match.match_data?.clubs || {}).find((c: any) => c.clubId !== CLUB_ID) as any;
-            
+
             const teamGoals = parseInt(ourClub?.goals) || 0;
             const oppGoals = parseInt(opponentClub?.goals) || 0;
-            
+
             // BUG FIX #1: Calcular resultado comparando gols (não depender do campo result da API)
             let result = "D"; // Default: empate
             if (teamGoals > oppGoals) result = "W";
             else if (teamGoals < oppGoals) result = "L";
-            
+
             // BUG FIX #4: Validar nome do adversário
-            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim() 
-              ? opponentClub.clubName 
+            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim()
+              ? opponentClub.clubName
               : "Adversário não informado";
-            
+
             return {
               matchId: match.match_data?.matchId || match.id?.toString() || Math.random().toString(36),
               timestamp: match.match_data?.timestamp || match.match_date || Date.now() / 1000,
@@ -99,7 +149,7 @@ export const appRouter = router({
           // BUG FIX #6: Calcular sequência atual e melhor sequência
           let currentStreakObj = { type: null, count: 0 };
           let bestStreakCount = 0;
-          
+
           if (matches.length > 0) {
             // Sequência atual (de trás para frente)
             let tempType = matches[matches.length - 1].result;
@@ -112,7 +162,7 @@ export const appRouter = router({
               }
             }
             currentStreakObj = { type: tempType, count: tempCount };
-            
+
             // Melhor sequência (iterar por todas)
             let maxCount = 0;
             let currentType = matches[0].result;
@@ -143,8 +193,9 @@ export const appRouter = router({
           overallStats.goalsPerGame = calcStats.total > 0 ? calcStats.gf / calcStats.total : 0;
           overallStats.currentStreak = currentStreakObj;
           overallStats.bestStreak = bestStreakCount;
-          
+
           // Calcular estatísticas de membros a partir do histórico de partidas
+          // Estes nomes são os "Nome do Jogador" (ex: scobyzinn) - os CORRETOS para exibição
           const playerMap = new Map<string, any>();
           ourProMatches.forEach((m: any) => {
             if (m.player_data) {
@@ -190,6 +241,138 @@ export const appRouter = router({
                 overallStats.cleanSheets = club.cleanSheets || overallStats.cleanSheets;
               }
             } catch (e) {}
+          }
+
+          // BUG FIX: Scraping da aba Players para enriquecer dados dos jogadores
+          // O Pro Clubs Tracker usa React/Next.js, mas o RSC stream contém dados serializados
+          // Vamos extrair dados dos cards de jogadores do HTML renderizado pelo servidor
+          const trackerPlayers: any[] = [];
+          let currentPos: string = "forward";
+          const positionMap: Record<string, string> = {
+            "🧤Goalkeepers": "goalkeeper",
+            "🛡️Defenders": "defender",
+            "🎯Midfielders": "midfielder",
+            "⚡Forwards": "forward",
+          };
+
+          $("*").each((_, element) => {
+            const text = $(element).text().trim();
+            for (const [label, pos] of Object.entries(positionMap)) {
+              if (text.includes(label)) {
+                currentPos = pos;
+                return;
+              }
+            }
+
+            if (element.name === "h4") {
+              const playerName = $(element).text().trim();
+              if (!playerName || playerName === "Jovem Nuggs FC" || playerName.length > 50) return;
+
+              const card = $(element).closest("div.bg-gray-800");
+              if (card.length === 0) return;
+
+              const ratingText = card.find("p.text-3xl").text().trim();
+              const rating = parseFloat(ratingText.replace(",", ".")) || 0;
+
+              const ovrText = card.find("p.text-gray-400.text-sm").text().trim();
+              const ovrMatch = ovrText.match(/OVR\s*(\d+)/);
+              const overallRating = ovrMatch ? parseInt(ovrMatch[1]) : undefined;
+
+              const gridItems = card.find("div.text-center");
+              const statLabels = ["games", "goals", "assists", "motm"];
+              const stats: any = { gamertag: playerName, position: currentPos, rating, overallRating };
+
+              gridItems.each((index, item) => {
+                if (index < statLabels.length) {
+                  const value = $(item).find("p.text-xl, p.text-lg").text().trim();
+                  const numValue = parseInt(value.replace("%", "")) || 0;
+                  stats[statLabels[index]] = numValue;
+                }
+              });
+
+              const percentItems = card.find("div.border-t.border-gray-700 div.text-center");
+              const percentLabels = ["winRate", "passPercentage", "shotPercentage"];
+              percentItems.each((index, item) => {
+                if (index < percentLabels.length) {
+                  const value = $(item).find("p.text-lg").text().trim();
+                  const numValue = parseInt(value.replace("%", "")) || 0;
+                  stats[percentLabels[index]] = numValue;
+                }
+              });
+
+              const cleanSheetsText = card.text();
+              const cleanSheetsMatch = cleanSheetsText.match(/Clean Sheets\s*\([^)]+\)\s*(\d+)/);
+              if (cleanSheetsMatch) {
+                stats.cleanSheets = parseInt(cleanSheetsMatch[1]);
+              }
+
+              if (stats.games > 0 || overallRating !== undefined) {
+                trackerPlayers.push(stats);
+              }
+            }
+          });
+
+          // COMBINAR dados: usar nomes da API + enriquecer com dados do Tracker
+          if (trackerPlayers.length > 0 && memberStats.length > 0) {
+            const knownNames = memberStats.map((p: any) => p.name);
+            const trackerMap = new Map<string, any>();
+            trackerPlayers.forEach((tp) => trackerMap.set(tp.gamertag, tp));
+
+            // Resolver nomes do Tracker e criar mapa por nome resolvido
+            const resolvedTrackerMap = new Map<string, any>();
+            trackerPlayers.forEach((tp) => {
+              const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
+              if (!resolvedTrackerMap.has(resolvedName)) {
+                resolvedTrackerMap.set(resolvedName, tp);
+              }
+            });
+
+            // Enriquecer membros da API com dados do Tracker
+            memberStats = memberStats.map((apiPlayer: any) => {
+              const trackerPlayer = resolvedTrackerMap.get(apiPlayer.name);
+              if (trackerPlayer) {
+                return {
+                  name: apiPlayer.name, // Manter nome da API (Nome do Jogador)
+                  games: trackerPlayer.games || apiPlayer.games || 0,
+                  goals: trackerPlayer.goals || apiPlayer.goals || 0,
+                  assists: trackerPlayer.assists || apiPlayer.assists || 0,
+                  position: trackerPlayer.position || apiPlayer.position || "N/A",
+                  rating: trackerPlayer.rating || apiPlayer.rating || 0,
+                  motm: trackerPlayer.motm || 0,
+                  winRate: trackerPlayer.winRate || 0,
+                  passPercentage: trackerPlayer.passPercentage || 0,
+                  shotPercentage: trackerPlayer.shotPercentage || 0,
+                  overallRating: trackerPlayer.overallRating,
+                  cleanSheets: trackerPlayer.cleanSheets || 0,
+                };
+              }
+              return apiPlayer;
+            });
+
+            // Adicionar jogadores do Tracker que não existem na API
+            const apiNames = new Set(memberStats.map((p: any) => p.name));
+            trackerPlayers.forEach((tp) => {
+              const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
+              if (!apiNames.has(resolvedName)) {
+                memberStats.push({
+                  name: resolvedName,
+                  games: tp.games || 0,
+                  goals: tp.goals || 0,
+                  assists: tp.assists || 0,
+                  position: tp.position || "N/A",
+                  rating: tp.rating || 0,
+                  motm: tp.motm || 0,
+                  winRate: tp.winRate || 0,
+                  passPercentage: tp.passPercentage || 0,
+                  shotPercentage: tp.shotPercentage || 0,
+                  overallRating: tp.overallRating,
+                  cleanSheets: tp.cleanSheets || 0,
+                });
+              }
+            });
+
+            // Reordenar por rating
+            memberStats = memberStats.sort((a: any, b: any) => b.rating - a.rating);
           }
         }
       } catch (error) { console.error("Erro ao processar Pro Clubs Tracker:", error); }
