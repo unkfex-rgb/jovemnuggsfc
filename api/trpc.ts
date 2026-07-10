@@ -68,7 +68,6 @@ const appRouter = router({
         promotions: 0,
         relegations: 0
       };
-      };
       
       let memberStats: any[] = [];
       let matches: any[] = [];
