@@ -122,6 +122,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Space Mono', monospace;
+    background-image: url('/manus-storage/ea-fc-bg.webp');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Syne', sans-serif;
@@ -157,6 +161,17 @@
   .glass-dark:hover {
     background-color: rgb(0 0 0 / 0.5);
     border-color: rgb(255 255 255 / 0.1);
+  }
+
+  .ea-fc-gradient {
+    background: linear-gradient(to right, #34d399, #10b981);
+  }
+
+  .ea-fc-text-gradient {
+    background: linear-gradient(to right, #34d399, #10b981);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .glow-white {
