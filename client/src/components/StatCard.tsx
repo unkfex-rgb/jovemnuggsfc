@@ -64,7 +64,7 @@ export function StatCard({ icon: Icon, label, value, delay = 0, trend = "stable"
         whileHover={{ y: -12, scale: 1.02 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        className={`glass-dark card-hover rounded-2xl p-4 sm:p-6 h-full flex flex-col justify-between relative overflow-hidden group border border-white/10 transition-all duration-300 ${glowBorder} ${glowShadow}`}
+        className={`glass-dark card-hover rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full flex flex-col justify-between relative overflow-hidden group border border-white/10 transition-all duration-300 ${glowBorder} ${glowShadow}`}
       >
         {/* Glow Background Dinâmico - Aprimorado */}
         <motion.div 
@@ -114,7 +114,7 @@ export function StatCard({ icon: Icon, label, value, delay = 0, trend = "stable"
           <div>
             <motion.div 
               animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
-              className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-1 sm:mb-2 tracking-tighter flex items-baseline origin-left"
+              className="text-xl sm:text-3xl md:text-5xl font-bold text-white mb-1 sm:mb-2 tracking-tighter flex items-baseline origin-left"
             >
               {isNumber || !isNaN(numericValue) ? (
                 <>
@@ -125,7 +125,7 @@ export function StatCard({ icon: Icon, label, value, delay = 0, trend = "stable"
                 value
               )}
             </motion.div>
-            <div className="text-[10px] tracking-[0.3em] uppercase text-white/40 font-bold mb-3 group-hover:text-white/60 transition-colors">
+            <div className="text-[8px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-white/40 font-bold mb-2 sm:mb-3 group-hover:text-white/60 transition-colors">
               {label}
             </div>
 

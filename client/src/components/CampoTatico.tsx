@@ -99,9 +99,9 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
         <h2 className="text-4xl md:text-6xl font-bold mb-16 tracking-tighter">CAMPO TÁTICO</h2>
       </Reveal>
 
-      <div className="relative aspect-[3/5] sm:aspect-[3/4.5] md:aspect-[4/6] lg:aspect-[16/18] w-full max-w-5xl mx-auto glass-dark rounded-3xl sm:rounded-[3rem] border border-white/10 hover:border-white/20 overflow-hidden p-4 sm:p-8 md:p-16 transition-all duration-500 shadow-2xl hover:shadow-[0_0_40px_rgba(0,255,255,0.1)]">
+      <div className="relative aspect-[3/5] sm:aspect-[3/4.5] md:aspect-[4/6] lg:aspect-[16/18] w-full max-w-5xl mx-auto glass-dark rounded-2xl sm:rounded-[3rem] border border-white/10 hover:border-white/20 overflow-hidden p-3 sm:p-6 md:p-16 transition-all duration-500 shadow-2xl hover:shadow-[0_0_40px_rgba(0,255,255,0.1)]">
         {/* Soccer Field Lines */}
-        <div className="absolute inset-8 md:inset-16 border-2 border-white/10 rounded-xl pointer-events-none">
+        <div className="absolute inset-3 sm:inset-8 md:inset-16 border-2 border-white/10 rounded-lg sm:rounded-xl pointer-events-none">
           <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/10 -translate-y-1/2" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-white/10 rounded-full" />
           
@@ -110,7 +110,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
         </div>
 
         {/* 4-2-3-1 Layout */}
-        <div className="relative h-full flex flex-col justify-between py-12">
+        <div className="relative h-full flex flex-col justify-between py-6 sm:py-12">
           {/* ST (1) */}
           <div className="flex justify-center items-center">
             {formation?.st.map((p, i) => (
@@ -140,7 +140,7 @@ export default memo(function CampoTatico({ players, loading }: CampoTaticoProps)
           </div>
 
           {/* CDMs (2) */}
-          <div className="flex justify-center gap-24 md:gap-48 items-center">
+          <div className="flex justify-center gap-8 sm:gap-24 md:gap-48 items-center">
             {formation?.cdms.map((p, i) => (
               <PlayerSpot 
                 key={p.name} 

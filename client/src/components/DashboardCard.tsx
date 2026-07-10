@@ -26,7 +26,7 @@ export function DashboardCard({
         whileHover={{ scale: 1.05, y: -8 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        className="glass-dark card-hover rounded-2xl p-4 sm:p-6 flex items-center gap-4 sm:gap-6 h-full relative overflow-hidden group border border-white/10 hover:border-white/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,255,0.2)]"
+        className="glass-dark card-hover rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 h-full relative overflow-hidden group border border-white/10 hover:border-white/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,255,0.2)]"
       >
         {/* Glow Background */}
         <motion.div 

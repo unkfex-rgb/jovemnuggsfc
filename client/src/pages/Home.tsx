@@ -83,7 +83,7 @@ export default function Home() {
       )}
 
       {/* Estatísticas */}
-      <section id="estatisticas" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
+      <section id="estatisticas" className="relative py-12 sm:py-20 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Números do clube</SectionLabel>
           <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-10 tracking-tighter">ESTATÍSTICAS</h2>
@@ -93,7 +93,7 @@ export default function Home() {
         {error && <ErrorState message={error} />}
 
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
             <StatCard
               icon={Activity}
               label="Jogos"
@@ -172,7 +172,7 @@ export default function Home() {
       </section>
 
       {/* Divisão e Reputação */}
-      <section className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
+      <section className="relative py-12 sm:py-20 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
         {!loading && stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Reveal delay={0}>
@@ -206,7 +206,7 @@ export default function Home() {
       </section>
 
       {/* Dashboard */}
-      <section id="dashboard" className="relative py-16 sm:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
+      <section id="dashboard" className="relative py-12 sm:py-20 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto">
         <Reveal>
           <SectionLabel>Indicadores automáticos</SectionLabel>
           <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 sm:mb-10 tracking-tighter">DASHBOARD</h2>
@@ -216,7 +216,7 @@ export default function Home() {
         {error && <ErrorState message={error} />}
 
         {stats && players.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             <DashboardCard
               title="Maior Goleador"
               name={topScorer?.name || "-"}
