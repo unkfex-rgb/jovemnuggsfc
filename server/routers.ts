@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
 import * as cheerio from "cheerio";
+import { scrapeProClubsPlayers } from "./scrapers/proClubsTracker";
 
 const CLUB_ID = "8044401";
 const CACHE_TTL = 5 * 60 * 1000;
@@ -52,6 +53,7 @@ export const appRouter = router({
       let overallStats: any = { gamesPlayed: 0, wins: 0, draws: 0, losses: 0, winRate: 0, goals: 0, conceded: 0, goalDiff: 0, goalsPerGame: 0, concededPerGame: 0, cleanSheets: 0, currentStreak: "", promotions: 0, relegations: 0 };
       let memberStats: any[] = [];
       let matches: any[] = [];
+      let scrapedPlayers: any[] = [];
 
       try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
@@ -169,30 +171,46 @@ export const appRouter = router({
         }
       } catch (e) { console.error(e); }
 
+      // Buscar dados dos jogadores via scraping do Pro Clubs Tracker
+      try {
+        scrapedPlayers = await scrapeProClubsPlayers(CLUB_ID);
+        // Converter dados do scraper para o formato esperado
+        memberStats = scrapedPlayers.map((p: any) => ({
+          name: p.name,
+          games: p.games || 0,
+          goals: p.goals || 0,
+          assists: p.assists || 0,
+          ratingSum: (p.rating || 0) * (p.games || 1),
+          position: p.position || "N/A",
+          rating: p.rating || 0
+        })).sort((a: any, b: any) => b.rating - a.rating);
+      } catch (e) {
+        console.error("Erro ao fazer scraping dos jogadores:", e);
+      }
+
+      // Tentar obter dados adicionais do club info via HTML do Pro Clubs Tracker
       try {
         const html = await fetchData(proClubsTrackerUrl, { responseType: 'text' }, null);
         if (html) {
           const $ = cheerio.load(html);
-          const nextData = $('#__NEXT_DATA__').html();
-          if (nextData) {
-            try {
-              const parsed = JSON.parse(nextData);
-              const props = parsed.props?.pageProps || {};
-              const club = props.club || {};
-              if (club.skillRating) clubInfo.skillRating = club.skillRating;
-              if (club.wins > overallStats.wins) {
-                overallStats.wins = club.wins;
-                overallStats.draws = club.ties;
-                overallStats.losses = club.losses;
-                overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
-                overallStats.goals = club.goals || overallStats.goals;
-                overallStats.conceded = club.goalsAgainst || overallStats.conceded;
-                overallStats.cleanSheets = club.cleanSheets || overallStats.cleanSheets;
-              }
-            } catch (e) {}
+          // Procurar por dados do clube no HTML renderizado
+          // Skill Rating
+          const skillRatingText = $("p:contains('Skill Rating')").prev().text().trim();
+          if (skillRatingText) {
+            clubInfo.skillRating = parseInt(skillRatingText) || 0;
           }
+          // Wins, Draws, Losses
+          const winsText = $("p:contains('Wins')").prev().text().trim();
+          const drawsText = $("p:contains('Draws')").prev().text().trim();
+          const lossesText = $("p:contains('Losses')").prev().text().trim();
+          if (winsText) overallStats.wins = parseInt(winsText) || overallStats.wins;
+          if (drawsText) overallStats.draws = parseInt(drawsText) || overallStats.draws;
+          if (lossesText) overallStats.losses = parseInt(lossesText) || overallStats.losses;
+          overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error("Erro ao buscar dados adicionais do Pro Clubs Tracker:", e);
+      }
 
       return { clubInfo, overallStats, memberStats, matches: matches.slice(0, 30), timestamp: Date.now() };
     }),

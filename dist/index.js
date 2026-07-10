@@ -650,16 +650,143 @@ var systemRouter = router({
 });
 
 // server/routers.ts
-var CLUB_ID = "8044401";
-var API_BASE = "https://api.ourproclub.app/api";
-async function fetchMatchHistory() {
+import axios3 from "axios";
+import * as cheerio2 from "cheerio";
+
+// server/scrapers/proClubsTracker.ts
+import axios2 from "axios";
+import * as cheerio from "cheerio";
+var CACHE_TTL = 5 * 60 * 1e3;
+var cache = /* @__PURE__ */ new Map();
+async function fetchProClubsTrackerHTML(clubId) {
+  const url = `https://proclubstracker.com/club/${clubId}?platform=common-gen5&div=5`;
   try {
-    const response = await fetch(`${API_BASE}/match/history?clubId=${CLUB_ID}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json();
+    const response = await axios2.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
+      timeout: 15e3
+    });
+    return response.data;
   } catch (error) {
-    console.error("Erro ao buscar hist\xF3rico de partidas:", error);
-    return [];
+    console.error(`Erro ao buscar HTML do Pro Clubs Tracker para clube ${clubId}:`, error instanceof Error ? error.message : error);
+    throw error;
+  }
+}
+async function scrapeProClubsPlayers(clubId) {
+  const cacheKey = `proclubs_players_${clubId}`;
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  try {
+    const html = await fetchProClubsTrackerHTML(clubId);
+    const $ = cheerio.load(html);
+    const players2 = [];
+    let currentPosition = "forward";
+    const positionMap = {
+      "\u{1F9E4}Goalkeepers": "goalkeeper",
+      "\u{1F6E1}\uFE0FDefenders": "defender",
+      "\u{1F3AF}Midfielders": "midfielder",
+      "\u26A1Forwards": "forward"
+    };
+    $("*").each((_, element) => {
+      const text2 = $(element).text().trim();
+      for (const [label, position] of Object.entries(positionMap)) {
+        if (text2.includes(label)) {
+          currentPosition = position;
+          return;
+        }
+      }
+      if (element.name === "h4") {
+        const playerName = $(element).text().trim();
+        if (!playerName || playerName === "Jovem Nuggs FC" || playerName.length > 50) {
+          return;
+        }
+        const card = $(element).closest("div.bg-gray-800");
+        if (card.length === 0) {
+          return;
+        }
+        const ratingText = card.find("p.text-3xl").text().trim();
+        const rating = parseFloat(ratingText.replace(",", ".")) || 0;
+        const ovrText = card.find("p.text-gray-400.text-sm").text().trim();
+        const ovrMatch = ovrText.match(/OVR\s*(\d+)/);
+        const overallRating = ovrMatch ? parseInt(ovrMatch[1]) : void 0;
+        const stats = {
+          name: playerName,
+          position: currentPosition,
+          rating,
+          overallRating
+        };
+        const gridItems = card.find("div.text-center");
+        const statLabels = ["games", "goals", "assists", "motm"];
+        gridItems.each((index, item) => {
+          if (index < statLabels.length) {
+            const value = $(item).find("p.text-xl, p.text-lg").text().trim();
+            const numValue = parseInt(value.replace("%", "")) || 0;
+            stats[statLabels[index]] = numValue;
+          }
+        });
+        const percentItems = card.find("div.border-t.border-gray-700 div.text-center");
+        const percentLabels = ["winRate", "passPercentage", "shotPercentage"];
+        percentItems.each((index, item) => {
+          if (index < percentLabels.length) {
+            const value = $(item).find("p.text-lg").text().trim();
+            const numValue = parseInt(value.replace("%", "")) || 0;
+            stats[percentLabels[index]] = numValue;
+          }
+        });
+        const playerStats = {
+          name: stats.name || playerName,
+          position: stats.position || currentPosition,
+          rating: stats.rating || 0,
+          games: stats.games || 0,
+          goals: stats.goals || 0,
+          assists: stats.assists || 0,
+          motm: stats.motm || 0,
+          winRate: stats.winRate || 0,
+          passPercentage: stats.passPercentage || 0,
+          shotPercentage: stats.shotPercentage || 0,
+          overallRating: stats.overallRating
+        };
+        players2.push(playerStats);
+      }
+    });
+    const uniquePlayers = Array.from(
+      new Map(players2.map((p) => [p.name, p])).values()
+    );
+    const activePlayers = uniquePlayers.filter((p) => p.games > 0 || p.overallRating !== void 0);
+    cache.set(cacheKey, { data: activePlayers, timestamp: Date.now() });
+    return activePlayers;
+  } catch (error) {
+    console.error("Erro ao fazer scraping dos jogadores do Pro Clubs Tracker:", error);
+    throw error;
+  }
+}
+
+// server/routers.ts
+var CLUB_ID = "8044401";
+var CACHE_TTL2 = 5 * 60 * 1e3;
+var cache2 = /* @__PURE__ */ new Map();
+async function fetchData(url, options = {}, fallback = null) {
+  const cacheKey = url + JSON.stringify(options);
+  const cached = cache2.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL2) return cached.data;
+  try {
+    const response = await axios3.get(url, {
+      ...options,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        ...options.headers || {}
+      },
+      timeout: 15e3
+    });
+    const data = response.data;
+    cache2.set(cacheKey, { data, timestamp: Date.now() });
+    return data;
+  } catch (error) {
+    console.error(`Erro ao buscar ${url}:`, error instanceof Error ? error.message : error);
+    return cached ? cached.data : fallback;
   }
 }
 var appRouter = router({
@@ -669,91 +796,152 @@ var appRouter = router({
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true
-      };
+      return { success: true };
     })
   }),
   club: router({
-    matchHistory: publicProcedure.query(async () => {
-      return await fetchMatchHistory();
-    }),
-    stats: publicProcedure.query(async () => {
-      const matches2 = await fetchMatchHistory();
-      const stats = {
-        totalMatches: matches2.length,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        totalGoals: 0,
-        totalConceded: 0,
-        players: {}
-      };
-      if (!Array.isArray(matches2)) return stats;
-      matches2.forEach((match) => {
-        if (!match.match_data?.clubs?.[CLUB_ID]) return;
-        const ourGoals = parseInt(match.match_data.clubs[CLUB_ID].goals) || 0;
-        const opponentGoals = Object.values(match.match_data.clubs).filter((club) => club.clubName !== "Jovem Nuggs FC").reduce((sum, club) => sum + (parseInt(club.goals) || 0), 0);
-        stats.totalGoals += ourGoals;
-        stats.totalConceded += opponentGoals;
-        if (ourGoals > opponentGoals) stats.wins++;
-        else if (ourGoals < opponentGoals) stats.losses++;
-        else stats.draws++;
-        if (match.player_data) {
-          Object.entries(match.player_data).forEach(([playerName, playerStats]) => {
-            if (!stats.players[playerName]) {
-              stats.players[playerName] = {
-                name: playerName,
-                goals: 0,
-                assists: 0,
-                matches: 0,
-                totalRating: 0,
-                position: playerStats.pos
-              };
-            }
-            stats.players[playerName].goals += parseInt(playerStats.goals) || 0;
-            stats.players[playerName].assists += parseInt(playerStats.assists) || 0;
-            stats.players[playerName].matches += 1;
-            stats.players[playerName].totalRating += parseFloat(playerStats.rating) || 0;
+    getData: publicProcedure.query(async () => {
+      const proClubsTrackerUrl = `https://proclubstracker.com/club/${CLUB_ID}?platform=common-gen5&div=5`;
+      const ourProClubMatchHistoryUrl = `https://api.ourproclub.app/api/match/history?clubId=${CLUB_ID}`;
+      let clubInfo = { clubName: "Jovem Nuggs FC", division: "5", skillRating: 0, wins: 0, draws: 0, losses: 0 };
+      let overallStats = { gamesPlayed: 0, wins: 0, draws: 0, losses: 0, winRate: 0, goals: 0, conceded: 0, goalDiff: 0, goalsPerGame: 0, concededPerGame: 0, cleanSheets: 0, currentStreak: "", promotions: 0, relegations: 0 };
+      let memberStats = [];
+      let matches2 = [];
+      let scrapedPlayers = [];
+      try {
+        const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
+        if (Array.isArray(ourProMatches)) {
+          matches2 = ourProMatches.map((match) => {
+            const ourClub = match.match_data?.clubs?.[CLUB_ID];
+            const opponentClub = Object.values(match.match_data?.clubs || {}).find((c) => c.clubId !== CLUB_ID);
+            const teamGoals = parseInt(ourClub?.goals) || 0;
+            const oppGoals = parseInt(opponentClub?.goals) || 0;
+            let result = "D";
+            if (teamGoals > oppGoals) result = "W";
+            else if (teamGoals < oppGoals) result = "L";
+            const opponentName = opponentClub?.clubName && opponentClub.clubName !== "Jovem Nuggs FC" && opponentClub.clubName?.trim() ? opponentClub.clubName : "Advers\xE1rio n\xE3o informado";
+            return {
+              matchId: match.match_data?.matchId || match.id?.toString() || Math.random().toString(36),
+              timestamp: match.match_data?.timestamp || match.match_date || Date.now() / 1e3,
+              date: match.match_data?.timestamp || match.match_date ? new Date((match.match_data?.timestamp || match.match_date) * 1e3).toISOString().split("T")[0] : "Recent",
+              homeClubName: ourClub?.clubName || "Jovem Nuggs FC",
+              awayClubName: opponentName,
+              homeGoals: teamGoals,
+              awayGoals: oppGoals,
+              result,
+              teamGoals,
+              oppGoals,
+              opponent: opponentName,
+              playerStats: match.player_data || {}
+            };
           });
-        }
-      });
-      Object.values(stats.players).forEach((player) => {
-        player.averageRating = (player.totalRating / player.matches).toFixed(2);
-      });
-      return stats;
-    }),
-    topPlayers: publicProcedure.query(async () => {
-      const matches2 = await fetchMatchHistory();
-      const players2 = {};
-      if (!Array.isArray(matches2)) return { topByGoals: [], topByAssists: [], topByRating: [] };
-      matches2.forEach((match) => {
-        if (match.player_data) {
-          Object.entries(match.player_data).forEach(([playerName, playerStats]) => {
-            if (!players2[playerName]) {
-              players2[playerName] = {
-                name: playerName,
-                goals: 0,
-                assists: 0,
-                matches: 0,
-                totalRating: 0,
-                position: playerStats.pos
-              };
+          const calcStats = matches2.reduce((acc, m) => {
+            acc.total++;
+            if (m.result === "W") acc.wins++;
+            else if (m.result === "L") acc.losses++;
+            else acc.draws++;
+            acc.gf += m.teamGoals;
+            acc.ga += m.oppGoals;
+            if (m.oppGoals === 0) acc.cleanSheets++;
+            return acc;
+          }, { total: 0, wins: 0, losses: 0, draws: 0, gf: 0, ga: 0, cleanSheets: 0 });
+          let currentStreakObj = { type: null, count: 0 };
+          let bestStreakCount = 0;
+          if (matches2.length > 0) {
+            let tempType = matches2[matches2.length - 1].result;
+            let tempCount = 1;
+            for (let i = matches2.length - 2; i >= 0; i--) {
+              if (matches2[i].result === tempType) {
+                tempCount++;
+              } else {
+                break;
+              }
             }
-            players2[playerName].goals += parseInt(playerStats.goals) || 0;
-            players2[playerName].assists += parseInt(playerStats.assists) || 0;
-            players2[playerName].matches += 1;
-            players2[playerName].totalRating += parseFloat(playerStats.rating) || 0;
+            currentStreakObj = { type: tempType, count: tempCount };
+            let maxCount = 0;
+            let currentType = matches2[0].result;
+            let count = 1;
+            for (let i = 1; i < matches2.length; i++) {
+              if (matches2[i].result === currentType) {
+                count++;
+              } else {
+                maxCount = Math.max(maxCount, count);
+                currentType = matches2[i].result;
+                count = 1;
+              }
+            }
+            maxCount = Math.max(maxCount, count);
+            bestStreakCount = maxCount;
+          }
+          overallStats.gamesPlayed = calcStats.total;
+          overallStats.wins = calcStats.wins;
+          overallStats.losses = calcStats.losses;
+          overallStats.draws = calcStats.draws;
+          overallStats.goals = calcStats.gf;
+          overallStats.conceded = calcStats.ga;
+          overallStats.goalDiff = calcStats.gf - calcStats.ga;
+          overallStats.cleanSheets = calcStats.cleanSheets;
+          overallStats.winRate = calcStats.total > 0 ? calcStats.wins / calcStats.total * 100 : 0;
+          overallStats.goalsPerGame = calcStats.total > 0 ? calcStats.gf / calcStats.total : 0;
+          overallStats.currentStreak = currentStreakObj;
+          overallStats.bestStreak = bestStreakCount;
+          const playerMap = /* @__PURE__ */ new Map();
+          ourProMatches.forEach((m) => {
+            if (m.player_data) {
+              Object.entries(m.player_data).forEach(([name, stats]) => {
+                if (!playerMap.has(name)) {
+                  playerMap.set(name, { name, games: 0, goals: 0, assists: 0, ratingSum: 0, position: stats.pos || "N/A" });
+                }
+                const p = playerMap.get(name);
+                p.games++;
+                p.goals += parseInt(stats.goals) || 0;
+                p.assists += parseInt(stats.assists) || 0;
+                p.ratingSum += parseFloat(stats.rating) || 0;
+              });
+            }
           });
+          memberStats = Array.from(playerMap.values()).map((p) => ({
+            ...p,
+            rating: p.games > 0 ? p.ratingSum / p.games : 0
+          })).sort((a, b) => b.rating - a.rating);
         }
-      });
-      Object.values(players2).forEach((player) => {
-        player.averageRating = (player.totalRating / player.matches).toFixed(2);
-      });
-      const topByGoals = Object.values(players2).sort((a, b) => b.goals - a.goals).slice(0, 5);
-      const topByAssists = Object.values(players2).sort((a, b) => b.assists - a.assists).slice(0, 5);
-      const topByRating = Object.values(players2).sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating)).slice(0, 5);
-      return { topByGoals, topByAssists, topByRating };
+      } catch (e) {
+        console.error(e);
+      }
+      try {
+        scrapedPlayers = await scrapeProClubsPlayers(CLUB_ID);
+        memberStats = scrapedPlayers.map((p) => ({
+          name: p.name,
+          games: p.games || 0,
+          goals: p.goals || 0,
+          assists: p.assists || 0,
+          ratingSum: (p.rating || 0) * (p.games || 1),
+          position: p.position || "N/A",
+          rating: p.rating || 0
+        })).sort((a, b) => b.rating - a.rating);
+      } catch (e) {
+        console.error("Erro ao fazer scraping dos jogadores:", e);
+      }
+      try {
+        const html = await fetchData(proClubsTrackerUrl, { responseType: "text" }, null);
+        if (html) {
+          const $ = cheerio2.load(html);
+          const skillRatingText = $("p:contains('Skill Rating')").prev().text().trim();
+          if (skillRatingText) {
+            clubInfo.skillRating = parseInt(skillRatingText) || 0;
+          }
+          const winsText = $("p:contains('Wins')").prev().text().trim();
+          const drawsText = $("p:contains('Draws')").prev().text().trim();
+          const lossesText = $("p:contains('Losses')").prev().text().trim();
+          if (winsText) overallStats.wins = parseInt(winsText) || overallStats.wins;
+          if (drawsText) overallStats.draws = parseInt(drawsText) || overallStats.draws;
+          if (lossesText) overallStats.losses = parseInt(lossesText) || overallStats.losses;
+          overallStats.gamesPlayed = overallStats.wins + overallStats.draws + overallStats.losses;
+        }
+      } catch (e) {
+        console.error("Erro ao buscar dados adicionais do Pro Clubs Tracker:", e);
+      }
+      return { clubInfo, overallStats, memberStats, matches: matches2.slice(0, 30), timestamp: Date.now() };
     })
   })
 });
