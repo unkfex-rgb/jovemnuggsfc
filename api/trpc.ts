@@ -82,6 +82,100 @@ async function fetchData(url: string, options: any = {}, fallback: any = null) {
   }
 }
 
+/**
+ * Dados embutidos dos jogadores do Pro Clubs Tracker (fallback).
+ * Usado quando o scraper não consegue capturar os dados (o Tracker usa React/Next.js).
+ * Capturados manualmente da aba Players: https://proclubstracker.com/club/8044401
+ */
+const PROCLUB_PLAYERS_FALLBACK = [
+  { gamertag: "Neymar JR", playerName: "Vinim71655", position: "midfielder", overallRating: 88, avgRating: 7.7, games: 75, goals: 10, assists: 26, motm: 14, winRate: 50, passPercentage: 82, shotPercentage: 34 },
+  { gamertag: "M. Motta", playerName: "pedrofeRLK", position: "defender", overallRating: 76, avgRating: 7.1, games: 72, goals: 12, assists: 20, motm: 13, winRate: 50, passPercentage: 75, shotPercentage: 15, cleanSheets: 15 },
+  { gamertag: "S. Covs", playerName: "Jessysz0", position: "midfielder", overallRating: 85, avgRating: 7.6, games: 30, goals: 29, assists: 25, motm: 11, winRate: 60, passPercentage: 79, shotPercentage: 45 },
+  { gamertag: "k. KEVIN BV", playerName: "Dghs100", position: "defender", overallRating: 84, avgRating: 6.2, games: 12, goals: 2, assists: 0, motm: 0, winRate: 75, passPercentage: 63, shotPercentage: 40, cleanSheets: 4 },
+  { gamertag: "C. Xavier", playerName: "tavin__07", position: "goalkeeper", overallRating: 88, avgRating: 7.3, games: 31, goals: 16, assists: 8, motm: 5, winRate: 61, passPercentage: 81, shotPercentage: 53, cleanSheets: 7 },
+  { gamertag: "SCOBY NUGGET", playerName: "scobyzinn", position: "defender", overallRating: 76, avgRating: 5.7, games: 45, goals: 5, assists: 2, motm: 3, winRate: 55, passPercentage: 75, shotPercentage: 15, cleanSheets: 11 },
+  { gamertag: "biel", playerName: "kevenmimdimdsimi", position: "defender", overallRating: 78, avgRating: 6.5, games: 56, goals: 14, assists: 13, motm: 2, winRate: 30, passPercentage: 75, shotPercentage: 18, cleanSheets: 1 },
+  { gamertag: "Kaka", playerName: "perfume67", position: "defender", overallRating: 80, avgRating: 6.9, games: 22, goals: 8, assists: 2, motm: 2, winRate: 36, passPercentage: 79, shotPercentage: 25, cleanSheets: 1 },
+  { gamertag: "corintia", playerName: "corintia4i20", position: "midfielder", overallRating: 86, avgRating: 6.7, games: 92, goals: 11, assists: 24, motm: 0, winRate: 44, passPercentage: 77, shotPercentage: 18 },
+  { gamertag: "a", playerName: "LLxTatsuo", position: "defender", overallRating: 87, avgRating: 6.8, games: 33, goals: 18, assists: 18, motm: 4, winRate: 33, passPercentage: 76, shotPercentage: 32, cleanSheets: 1 },
+  { gamertag: "crioulo", playerName: "eozafe", position: "forward", overallRating: 81, avgRating: 7.3, games: 4, goals: 2, assists: 1, motm: 0, winRate: 75, passPercentage: 71, shotPercentage: 22 },
+  { gamertag: "mSq", playerName: "mesquita_B12", position: "defender", overallRating: 79, avgRating: 7.1, games: 10, goals: 6, assists: 4, motm: 1, winRate: 40, passPercentage: 68, shotPercentage: 31, cleanSheets: 1 },
+  { gamertag: "P. PECINHA", playerName: "PECINHAA22", position: "forward", overallRating: 85, avgRating: 6.9, games: 50, goals: 49, assists: 10, motm: 5, winRate: 48, passPercentage: 83, shotPercentage: 46 },
+  { gamertag: "valdirene", playerName: "Dghs100", position: "goalkeeper", overallRating: 95, avgRating: 5.7, games: 45, goals: 0, assists: 0, motm: 0, winRate: 37, passPercentage: 86, shotPercentage: 0, cleanSheets: 6 },
+  { gamertag: "KauÃ£", playerName: "Kauanpecinha", position: "midfielder", overallRating: 80, avgRating: 6.3, games: 57, goals: 14, assists: 10, motm: 1, winRate: 31, passPercentage: 70, shotPercentage: 21 },
+  { gamertag: "Lucas", playerName: "KZNNXZ", position: "defender", overallRating: 88, avgRating: 7.7, games: 16, goals: 11, assists: 11, motm: 4, winRate: 68, passPercentage: 82, shotPercentage: 44, cleanSheets: 3 },
+  { gamertag: "zk", playerName: "matzindela", position: "defender", overallRating: 75, avgRating: 6.8, games: 11, goals: 0, assists: 0, motm: 1, winRate: 18, passPercentage: 77, shotPercentage: 0, cleanSheets: 1 },
+  { gamertag: "p. higher", playerName: "CELTA4656", position: "defender", overallRating: 80, avgRating: 5.9, games: 56, goals: 13, assists: 11, motm: 3, winRate: 35, passPercentage: 79, shotPercentage: 25, cleanSheets: 1 },
+  { gamertag: "A. 77", playerName: "araujozx77_", position: "defender", overallRating: 85, avgRating: 6.3, games: 113, goals: 33, assists: 27, motm: 1, winRate: 42, passPercentage: 74, shotPercentage: 17, cleanSheets: 2 },
+  { gamertag: "Matheus", playerName: "rochax07", position: "defender", overallRating: 87, avgRating: 6.8, games: 43, goals: 9, assists: 11, motm: 1, winRate: 37, passPercentage: 76, shotPercentage: 32, cleanSheets: 2 },
+];
+
+/**
+ * Combina dados de membros da API OurProClub com dados do Pro Clubs Tracker.
+ * Usa os nomes da API (Nome do Jogador) e enriquece com dados do Tracker.
+ */
+function combinePlayerData(apiMemberStats: any[], trackerPlayers: any[]): any[] {
+  if (trackerPlayers.length === 0) {
+    return apiMemberStats;
+  }
+
+  // Criar mapa do Tracker por nome resolvido
+  const knownNames = apiMemberStats.map((p: any) => p.name);
+  const resolvedTrackerMap = new Map<string, any>();
+  trackerPlayers.forEach((tp) => {
+    const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
+    if (!resolvedTrackerMap.has(resolvedName)) {
+      resolvedTrackerMap.set(resolvedName, tp);
+    }
+  });
+
+  // Enriquecer membros da API com dados do Tracker
+  const enriched = apiMemberStats.map((apiPlayer: any) => {
+    const trackerPlayer = resolvedTrackerMap.get(apiPlayer.name);
+    if (trackerPlayer) {
+      return {
+        name: apiPlayer.name,
+        games: trackerPlayer.games || apiPlayer.games || 0,
+        goals: trackerPlayer.goals || apiPlayer.goals || 0,
+        assists: trackerPlayer.assists || apiPlayer.assists || 0,
+        position: trackerPlayer.position || apiPlayer.position || "N/A",
+        rating: trackerPlayer.avgRating || apiPlayer.rating || 0,
+        motm: trackerPlayer.motm || 0,
+        winRate: trackerPlayer.winRate || 0,
+        passPercentage: trackerPlayer.passPercentage || 0,
+        shotPercentage: trackerPlayer.shotPercentage || 0,
+        overallRating: trackerPlayer.overallRating,
+        cleanSheets: trackerPlayer.cleanSheets || 0,
+      };
+    }
+    return apiPlayer;
+  });
+
+  // Adicionar jogadores do Tracker que não existem na API
+  const apiNames = new Set(apiMemberStats.map((p: any) => p.name));
+  trackerPlayers.forEach((tp) => {
+    const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
+    if (!apiNames.has(resolvedName)) {
+      enriched.push({
+        name: resolvedName,
+        games: tp.games || 0,
+        goals: tp.goals || 0,
+        assists: tp.assists || 0,
+        position: tp.position || "N/A",
+        rating: tp.avgRating || 0,
+        motm: tp.motm || 0,
+        winRate: tp.winRate || 0,
+        passPercentage: tp.passPercentage || 0,
+        shotPercentage: tp.shotPercentage || 0,
+        overallRating: tp.overallRating,
+        cleanSheets: tp.cleanSheets || 0,
+      });
+    }
+  });
+
+  return enriched.sort((a: any, b: any) => b.rating - a.rating);
+}
+
 const t = initTRPC.create({ transformer: superjson });
 const router = t.router;
 const publicProcedure = t.procedure;
@@ -218,7 +312,9 @@ export const appRouter = router({
         }
       } catch (error) { console.error("Erro ao buscar OurProClub matches:", error); }
 
-      // 2. Buscar dados complementares do Pro Clubs Tracker (Fonte Secundária para Skill Rating e Dados Oficiais)
+      // 2. Buscar dados complementares do Pro Clubs Tracker (Fonte Secundária)
+      // Primeiro tenta o scraper, se falhar usa dados embutidos (fallback)
+      let trackerPlayers: any[] = [];
       try {
         const html = await fetchData(proClubsTrackerUrl, { responseType: 'text' }, null);
         if (html) {
@@ -243,10 +339,8 @@ export const appRouter = router({
             } catch (e) {}
           }
 
-          // BUG FIX: Scraping da aba Players para enriquecer dados dos jogadores
-          // O Pro Clubs Tracker usa React/Next.js, mas o RSC stream contém dados serializados
-          // Vamos extrair dados dos cards de jogadores do HTML renderizado pelo servidor
-          const trackerPlayers: any[] = [];
+          // Tentar extrair dados dos cards de jogadores do HTML renderizado pelo servidor
+          const scrapedPlayers: any[] = [];
           let currentPos: string = "forward";
           const positionMap: Record<string, string> = {
             "🧤Goalkeepers": "goalkeeper",
@@ -264,7 +358,7 @@ export const appRouter = router({
               }
             }
 
-            if (element.name === "h4") {
+            if ((element as any).name === "h4") {
               const playerName = $(element).text().trim();
               if (!playerName || playerName === "Jovem Nuggs FC" || playerName.length > 50) return;
 
@@ -280,7 +374,7 @@ export const appRouter = router({
 
               const gridItems = card.find("div.text-center");
               const statLabels = ["games", "goals", "assists", "motm"];
-              const stats: any = { gamertag: playerName, position: currentPos, rating, overallRating };
+              const stats: any = { gamertag: playerName, position: currentPos, avgRating: rating, overallRating, games: 0, goals: 0, assists: 0, motm: 0, winRate: 0, passPercentage: 0, shotPercentage: 0 };
 
               gridItems.each((index, item) => {
                 if (index < statLabels.length) {
@@ -307,75 +401,28 @@ export const appRouter = router({
               }
 
               if (stats.games > 0 || overallRating !== undefined) {
-                trackerPlayers.push(stats);
+                scrapedPlayers.push(stats);
               }
             }
           });
 
-          // COMBINAR dados: usar nomes da API + enriquecer com dados do Tracker
-          if (trackerPlayers.length > 0 && memberStats.length > 0) {
-            const knownNames = memberStats.map((p: any) => p.name);
-            const trackerMap = new Map<string, any>();
-            trackerPlayers.forEach((tp) => trackerMap.set(tp.gamertag, tp));
-
-            // Resolver nomes do Tracker e criar mapa por nome resolvido
-            const resolvedTrackerMap = new Map<string, any>();
-            trackerPlayers.forEach((tp) => {
-              const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
-              if (!resolvedTrackerMap.has(resolvedName)) {
-                resolvedTrackerMap.set(resolvedName, tp);
-              }
-            });
-
-            // Enriquecer membros da API com dados do Tracker
-            memberStats = memberStats.map((apiPlayer: any) => {
-              const trackerPlayer = resolvedTrackerMap.get(apiPlayer.name);
-              if (trackerPlayer) {
-                return {
-                  name: apiPlayer.name, // Manter nome da API (Nome do Jogador)
-                  games: trackerPlayer.games || apiPlayer.games || 0,
-                  goals: trackerPlayer.goals || apiPlayer.goals || 0,
-                  assists: trackerPlayer.assists || apiPlayer.assists || 0,
-                  position: trackerPlayer.position || apiPlayer.position || "N/A",
-                  rating: trackerPlayer.rating || apiPlayer.rating || 0,
-                  motm: trackerPlayer.motm || 0,
-                  winRate: trackerPlayer.winRate || 0,
-                  passPercentage: trackerPlayer.passPercentage || 0,
-                  shotPercentage: trackerPlayer.shotPercentage || 0,
-                  overallRating: trackerPlayer.overallRating,
-                  cleanSheets: trackerPlayer.cleanSheets || 0,
-                };
-              }
-              return apiPlayer;
-            });
-
-            // Adicionar jogadores do Tracker que não existem na API
-            const apiNames = new Set(memberStats.map((p: any) => p.name));
-            trackerPlayers.forEach((tp) => {
-              const resolvedName = resolvePlayerName(tp.gamertag, knownNames);
-              if (!apiNames.has(resolvedName)) {
-                memberStats.push({
-                  name: resolvedName,
-                  games: tp.games || 0,
-                  goals: tp.goals || 0,
-                  assists: tp.assists || 0,
-                  position: tp.position || "N/A",
-                  rating: tp.rating || 0,
-                  motm: tp.motm || 0,
-                  winRate: tp.winRate || 0,
-                  passPercentage: tp.passPercentage || 0,
-                  shotPercentage: tp.shotPercentage || 0,
-                  overallRating: tp.overallRating,
-                  cleanSheets: tp.cleanSheets || 0,
-                });
-              }
-            });
-
-            // Reordenar por rating
-            memberStats = memberStats.sort((a: any, b: any) => b.rating - a.rating);
+          if (scrapedPlayers.length > 0) {
+            trackerPlayers = scrapedPlayers;
+            console.log(`Pro Clubs Tracker: ${scrapedPlayers.length} jogadores extraídos do HTML`);
           }
         }
-      } catch (error) { console.error("Erro ao processar Pro Clubs Tracker:", error); }
+      } catch (error) { console.error("Erro ao processar Pro Clubs Tracker (scraper):", error); }
+
+      // Fallback: usar dados embutidos se o scraper não retornou dados
+      if (trackerPlayers.length === 0 && memberStats.length > 0) {
+        console.log("Pro Clubs Tracker: usando dados embutidos (fallback)");
+        trackerPlayers = PROCLUB_PLAYERS_FALLBACK;
+      }
+
+      // COMBINAR dados: usar nomes da API + enriquecer com dados do Tracker
+      if (trackerPlayers.length > 0 && memberStats.length > 0) {
+        memberStats = combinePlayerData(memberStats, trackerPlayers);
+      }
 
       return { clubInfo, overallStats, memberStats, matches: matches.slice(0, 30), timestamp: Date.now() };
     }),
