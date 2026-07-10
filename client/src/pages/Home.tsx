@@ -83,7 +83,7 @@ export default function Home() {
       {!loading && overallStats && (
         <div className="relative py-8 px-4 sm:px-6 max-w-7xl mx-auto">
           {/* Ajustar props para MatchDayBanner se necessário */}
-          <MatchDayBanner stats={overallStats} />
+          <MatchDayBanner stats={overallStats || {}} />
         </div>
       )}
 
@@ -102,14 +102,14 @@ export default function Home() {
             <StatCard
               icon={Activity}
               label="Jogos"
-              value={overallStats.gamesPlayed}
+              value={overallStats?.gamesPlayed || 0}
               delay={0}
               trend="stable"
             />
             <StatCard
               icon={Trophy}
               label="Vitórias"
-              value={overallStats.wins}
+              value={overallStats?.wins || 0}
               delay={60}
               trend={winTrend}
               sparkData={getSparkData((m) => m.result === "W" ? 1 : 0)}
@@ -117,28 +117,28 @@ export default function Home() {
             <StatCard
               icon={Minus}
               label="Empates"
-              value={overallStats.draws}
+              value={overallStats?.draws || 0}
               delay={120}
               trend="stable"
             />
             <StatCard
               icon={TrendingDown}
               label="Derrotas"
-              value={overallStats.losses}
+              value={overallStats?.losses || 0}
               delay={180}
               trend={winTrend === "up" ? "down" : winTrend === "down" ? "up" : "stable"}
             />
             <StatCard
               icon={Gauge}
               label="Aproveitamento"
-              value={`${((overallStats.wins / overallStats.gamesPlayed) * 100 || 0).toFixed(2)}%`}
+              value={`${((overallStats?.wins / overallStats?.gamesPlayed) * 100 || 0).toFixed(2)}%`}
               delay={240}
               trend={winTrend}
             />
             <StatCard
               icon={Target}
               label="Gols Pró"
-              value={overallStats.goals}
+              value={overallStats?.goals || 0}
               delay={300}
               trend={goalsTrend}
               sparkData={getSparkData((m) => m.homeGoals)}
@@ -146,7 +146,7 @@ export default function Home() {
             <StatCard
               icon={Crosshair}
               label="Gols Contra"
-              value={overallStats.conceded}
+              value={overallStats?.conceded || 0}
               delay={360}
               trend={concededTrend === "up" ? "down" : concededTrend === "down" ? "up" : "stable"}
               sparkData={getSparkData((m) => m.awayGoals)}
@@ -154,21 +154,21 @@ export default function Home() {
             <StatCard
               icon={TrendingUp}
               label="Saldo"
-              value={overallStats.goalDiff}
+              value={overallStats?.goalDiff || 0}
               delay={420}
               trend={goalsTrend}
             />
             <StatCard
               icon={ShieldCheck}
               label="Clean Sheets"
-              value={overallStats.cleanSheets}
+              value={overallStats?.cleanSheets || 0}
               delay={480}
               trend="stable"
             />
             <StatCard
               icon={BarChart3}
               label="Média de Gols"
-              value={overallStats.goalsPerGame.toFixed(2)}
+              value={(overallStats?.goalsPerGame || 0).toFixed(2)}
               delay={540}
               trend={goalsTrend}
             />
@@ -183,7 +183,7 @@ export default function Home() {
             <Reveal delay={0}>
               <div className="glass-dark card-hover rounded-2xl p-8 border border-white/10 h-full">
                 {/* Ajustar props para DivisionProgressBar se necessário */}
-                <DivisionProgressBar stats={{ division: clubInfo.division, skillRating: clubInfo.skillRating, wins: overallStats.wins, draws: overallStats.draws }} />
+                <DivisionProgressBar stats={{ division: clubInfo?.division || "", skillRating: clubInfo?.skillRating || 0, wins: overallStats?.wins || 0, draws: overallStats?.draws || 0 }} />
               </div>
             </Reveal>
             <Reveal delay={100}>
@@ -191,17 +191,17 @@ export default function Home() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="text-xs font-bold text-white/60 uppercase tracking-widest mb-2">Próximo Objetivo</div>
-                    <div className="text-3xl font-black text-white mb-4">Divisão {parseInt(clubInfo.division) + 1}</div>
+                    <div className="text-3xl font-black text-white mb-4">Divisão {parseInt(clubInfo?.division || "0") + 1}</div>
                     <p className="text-white/40 text-sm">Continue vencendo para subir de divisão!</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
                     <div className="text-center">
                       <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Vitórias</div>
-                      <div className="text-2xl font-black text-green-400">{overallStats.wins}</div>
+                      <div className="text-2xl font-black text-green-400">{overallStats?.wins || 0}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-white/40 font-bold uppercase tracking-widest mb-2">Derrotas</div>
-                      <div className="text-2xl font-black text-red-400">{overallStats.losses}</div>
+                      <div className="text-2xl font-black text-red-400">{overallStats?.losses || 0}</div>
                     </div>
                   </div>
                 </div>
@@ -258,7 +258,7 @@ export default function Home() {
             <DashboardCard
               title="Forma Atual"
               name={
-                overallStats.currentStreak
+                overallStats?.currentStreak
                   ? `${overallStats.currentStreak}`
                   : "-"
               }
