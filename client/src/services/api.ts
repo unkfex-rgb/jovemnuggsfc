@@ -1,10 +1,20 @@
-import { trpc } from "@/lib/trpc";
+import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import type { AppRouter } from "../../../server/routers";
+import superjson from "superjson";
 import type { Match, Player, ClubStats, RawMatchData } from "@/types/api";
-
-
 
 const CLUB_ID = "8044401";
 const PLATFORM = "common-gen5";
+
+// Cliente tRPC puro para uso em serviços
+const trpc = createTRPCProxyClient<AppRouter>({
+  transformer: superjson,
+  links: [
+    httpBatchLink({
+      url: "/api/trpc",
+    }),
+  ],
+});
 
 
 

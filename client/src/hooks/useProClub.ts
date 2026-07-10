@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { proClubAPI } from "@/services/api";
 import type { Match, Player, ClubStats } from "@/types/api";
-import { trpc } from "@/lib/trpc";
+
 
 
 interface UseProClubReturn {
