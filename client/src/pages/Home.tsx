@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { matches, players, stats, loading, error } = useProClub();
+  const { matches = [], players = [], stats, loading, error } = useProClub();
 
   // Ajustar o acesso às propriedades de stats
   const clubInfo = stats?.clubInfo;
