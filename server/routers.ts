@@ -183,10 +183,10 @@ export const appRouter = router({
   }),
   club: router({
     getData: publicProcedure.query(async () => {
-      const proClubsTrackerUrl = `https://proclubstracker.com/club/${CLUB_ID}?platform=common-gen5&div=5`;
+      const proClubsTrackerUrl = `https://proclubstracker.com/club/${CLUB_ID}?platform=common-gen5&div=3`;
       const ourProClubMatchHistoryUrl = `https://api.ourproclub.app/api/match/history?clubId=${CLUB_ID}`;
 
-      let clubInfo: any = { clubName: "Jovem Nuggs FC", division: "5", skillRating: 0, wins: 0, draws: 0, losses: 0 };
+      let clubInfo: any = { clubName: "Jovem Nuggs FC", division: "3", skillRating: 0, wins: 0, draws: 0, losses: 0 };
       let overallStats: any = { gamesPlayed: 0, wins: 0, draws: 0, losses: 0, winRate: 0, goals: 0, conceded: 0, goalDiff: 0, goalsPerGame: 0, concededPerGame: 0, cleanSheets: 0, currentStreak: "", promotions: 0, relegations: 0 };
       let memberStats: any[] = [];
       let matches: any[] = [];
