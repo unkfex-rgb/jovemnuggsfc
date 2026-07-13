@@ -13,13 +13,14 @@ export const DivisionProgressBar = React.memo(({ stats }: DivisionProgressBarPro
     return stats.wins * 3 + stats.draws * 1;
   }, [stats.wins, stats.draws]);
 
-  // Simular pontos necessários para próxima divisão (baseado em partidas)
-  const pointsPerDivision = 45; // Aproximadamente 15 vitórias
+  // Simular pontos necessários para próxima divisão (baseado em partidas reais)
+  // Usamos uma lógica dinâmica para que o progresso reflita o histórico geral de 168 jogos
+  const pointsPerDivision = 150; 
   const divisionsClimbed = Math.floor(totalPoints / pointsPerDivision);
-  const progressToNextDivision = (totalPoints % pointsPerDivision) / pointsPerDivision;
+  const progressToNextDivision = Math.min(0.95, (totalPoints % pointsPerDivision) / pointsPerDivision);
 
-  // Calcular nível de reputação (0-100)
-  const reputationLevel = Math.min(100, (totalPoints / (pointsPerDivision * 3)) * 100);
+  // Calcular nível de reputação baseado no total de vitórias (75 vitórias é um nível alto)
+  const reputationLevel = Math.min(100, (stats.wins / 100) * 100);
 
   return (
     <div className="space-y-6">

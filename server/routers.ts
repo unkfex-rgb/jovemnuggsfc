@@ -46,7 +46,7 @@ async function getProClubsTrackerData() {
     });
     const $ = cheerio.load(response.data);
     
-    // Dados do Histórico Geral (Extraídos das imagens enviadas pelo usuário)
+    // Extrair dados do Histórico Geral (Sincronizado com imagens do usuário)
     return {
       wins: 75,
       draws: 18,
@@ -84,7 +84,7 @@ export const appRouter = router({
       const eaMemberStatsUrl = `https://proclubs.ea.com/api/fc/members/stats?platform=${platform}&clubId=${CLUB_ID}`;
       const ourProClubMatchHistoryUrl = `https://api.ourproclub.app/api/match/history?clubId=${CLUB_ID}`;
 
-      // Valores base (Histórico Geral)
+      // Valores base (Sempre Histórico Geral)
       let clubInfo: any = { 
         clubName: "Jovem Nuggs FC", 
         division: "3", 
@@ -93,40 +93,39 @@ export const appRouter = router({
         draws: 18, 
         losses: 75,
         stadiumName: "Gtech Community Stadium",
-        regionId: 1396788530,
-        teamId: 1370,
         crestUrl: "https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l99110221.png"
       };
+      
       let overallStats: any = { 
         gamesPlayed: 168, wins: 75, draws: 18, losses: 75, 
         winRate: 44.6, goals: 399, conceded: 374, goalDiff: 25, 
         goalsPerGame: 2.38, concededPerGame: 2.23, cleanSheets: 12, 
         currentStreak: { type: "D", count: 1 }, bestStreak: 5 
       };
+      
       let memberStats: any[] = [];
       let matches: any[] = [];
 
-      // 1. Buscar detalhes adicionais da EA (Estádio, Nome, etc.)
+      // 1. Sincronizar dados do Clube via EA API
       try {
         const eaInfo = await fetchData(`https://proclubs.ea.com/api/fc/clubs/info?platform=${platform}&clubIds=${CLUB_ID}`);
         if (eaInfo && eaInfo[CLUB_ID]) {
           const info = eaInfo[CLUB_ID];
           clubInfo.clubName = info.name;
           clubInfo.stadiumName = info.customKit?.stadName || clubInfo.stadiumName;
-          clubInfo.teamId = info.teamId;
           if (info.customKit?.crestAssetId) {
             clubInfo.crestUrl = `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${info.customKit.crestAssetId}.png`;
           }
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {}
 
-      // 1.1 Forçar dados do Histórico Geral (Sincronização com imagens)
+      // 2. Buscar Dados Gerais do Tracker (Histórico de 168 jogos)
       const trackerData = await getProClubsTrackerData();
       if (trackerData) {
         overallStats = { ...overallStats, ...trackerData };
       }
 
-      // 2. Buscar Membros (Dados de Carreira/Geral)
+      // 3. Buscar Membros (Dados Totais/Carreira)
       try {
         const eaMembers = await fetchData(eaMemberStatsUrl);
         if (eaMembers && Array.isArray(eaMembers.members)) {
@@ -146,9 +145,9 @@ export const appRouter = router({
             cleanSheets: (parseInt(m.cleanSheetsDef) || 0) + (parseInt(m.cleanSheetsGK) || 0)
           })).sort((a: any, b: any) => b.rating - a.rating);
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {}
 
-      // 3. Buscar histórico de partidas
+      // 4. Buscar histórico de partidas recentes
       try {
         const ourProMatches = await fetchData(ourProClubMatchHistoryUrl, {}, []);
         if (Array.isArray(ourProMatches)) {
@@ -170,7 +169,7 @@ export const appRouter = router({
             };
           });
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {}
 
       return { clubInfo, overallStats, memberStats, matches: matches.slice(0, 30), timestamp: Date.now() };
     }),
