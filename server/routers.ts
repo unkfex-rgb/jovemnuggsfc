@@ -94,7 +94,8 @@ export const appRouter = router({
         losses: 75,
         stadiumName: "Gtech Community Stadium",
         regionId: 1396788530,
-        teamId: 1370
+        teamId: 1370,
+        crestUrl: "https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l99110221.png"
       };
       let overallStats: any = { 
         gamesPlayed: 168, wins: 75, draws: 18, losses: 75, 
@@ -113,6 +114,9 @@ export const appRouter = router({
           clubInfo.clubName = info.name;
           clubInfo.stadiumName = info.customKit?.stadName || clubInfo.stadiumName;
           clubInfo.teamId = info.teamId;
+          if (info.customKit?.crestAssetId) {
+            clubInfo.crestUrl = `https://eafc24.content.easports.com/fifa/fltOnlineAssets/24B23FDE-7835-41C2-87A2-F453DFDB2E82/2024/fcweb/crests/256x256/l${info.customKit.crestAssetId}.png`;
+          }
         }
       } catch (e) { console.error(e); }
 
