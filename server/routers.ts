@@ -85,7 +85,17 @@ export const appRouter = router({
       const ourProClubMatchHistoryUrl = `https://api.ourproclub.app/api/match/history?clubId=${CLUB_ID}`;
 
       // Valores base (Histórico Geral)
-      let clubInfo: any = { clubName: "Jovem Nuggs FC", division: "3", skillRating: 1579, wins: 75, draws: 18, losses: 75 };
+      let clubInfo: any = { 
+        clubName: "Jovem Nuggs FC", 
+        division: "3", 
+        skillRating: 1579, 
+        wins: 75, 
+        draws: 18, 
+        losses: 75,
+        stadiumName: "Gtech Community Stadium",
+        regionId: 1396788530,
+        teamId: 1370
+      };
       let overallStats: any = { 
         gamesPlayed: 168, wins: 75, draws: 18, losses: 75, 
         winRate: 44.6, goals: 399, conceded: 374, goalDiff: 25, 
@@ -95,7 +105,18 @@ export const appRouter = router({
       let memberStats: any[] = [];
       let matches: any[] = [];
 
-      // 1. Forçar dados do Histórico Geral (Sincronização com imagens)
+      // 1. Buscar detalhes adicionais da EA (Estádio, Nome, etc.)
+      try {
+        const eaInfo = await fetchData(`https://proclubs.ea.com/api/fc/clubs/info?platform=${platform}&clubIds=${CLUB_ID}`);
+        if (eaInfo && eaInfo[CLUB_ID]) {
+          const info = eaInfo[CLUB_ID];
+          clubInfo.clubName = info.name;
+          clubInfo.stadiumName = info.customKit?.stadName || clubInfo.stadiumName;
+          clubInfo.teamId = info.teamId;
+        }
+      } catch (e) { console.error(e); }
+
+      // 1.1 Forçar dados do Histórico Geral (Sincronização com imagens)
       const trackerData = await getProClubsTrackerData();
       if (trackerData) {
         overallStats = { ...overallStats, ...trackerData };
